@@ -9,7 +9,7 @@ GPL := gpl/pt.c gpl/elfldr.c gpl/hbldr.c gpl/fs_readfile.c
 INC := -I$(SDK)/target/include -I$(SDK)/target/user/homebrew/include -I$(PORTROOT)/include -I$(PORTROOT)/include/SDL2 -I.
 CFLAGS := -O2 -Wall -Wextra -D__PS5__ $(INC)
 SDL := $(PORTROOT)/lib/libSDL2main.a $(PORTROOT)/lib/libSDL2.a
-SYS := -L$(PORTROOT)/lib -lSceSystemService -lSceUserService -lSceImeDialog -lSceKeyboard -lSceVideoOut -lSceAudioOut -lScePad -lkernel_sys -lm -lz -lbz2 -liconv
+SYS := -L$(PORTROOT)/lib -lSceSystemService -lSceUserService -lSceImeDialog -lSceKeyboard -lSceVideoOut -lSceAudioOut -lScePad -lkernel_sys -lSceNotification -lm -lz -lbz2 -liconv
 PROBE := $(OUT)/goldengames_retrohub_probe.elf
 NOTIFY_PROBE := $(OUT)/goldengames_retrohub_notify_probe.elf
 all: $(UI) $(BOOT) $(PROBE) $(NOTIFY_PROBE)
