@@ -24,10 +24,6 @@ jobs:
           cp ../native-title/platform_ps5.cpp src/
           cp ../native-title/diagnostic_frame.c src/
           cp ../native-title/diagnostic_frame.h src/
-          cp ../native-title/console_ui.c src/
-          cp ../native-title/console_ui.h src/
-          cp ../native-title/rom_scanner.c src/
-          cp ../native-title/rom_scanner.h src/
           cp ../native-title/pad_ps5.cpp src/
           cp ../native-title/pad_ps5.h src/
           cat > sce_sys/param.json <<'JSON'
@@ -83,10 +79,10 @@ jobs:
           cp ../native-title/THIRD_PARTY_NOTICES.md dist/PPSA99202/
           cp ../native-title/ARCHITECTURE.md dist/PPSA99202/
           cp ../native-title/*.c ../native-title/*.cpp ../native-title/*.h dist/PPSA99202/
-          (cd dist && zip -r ../Goldengames-RetroHub-Pro-v0.2.0-Native-Build001.zip PPSA99202)
-          sha256sum Goldengames-RetroHub-Pro-v0.2.0-Native-Build001.zip
+          (cd dist && zip -r ../Goldengames-RetroHub-Pro-v0.2.0-Native-Pad-Isolation.zip PPSA99202)
+          sha256sum Goldengames-RetroHub-Pro-v0.2.0-Native-Pad-Isolation.zip
       - uses: actions/upload-artifact@v4
         with:
-          name: Goldengames-RetroHub-Pro-v0.2.0-Native-Build001
-          path: foundation/Goldengames-RetroHub-Pro-v0.2.0-Native-Build001.zip
+          name: Goldengames-RetroHub-Pro-v0.2.0-Native-Pad-Isolation
+          path: foundation/Goldengames-RetroHub-Pro-v0.2.0-Native-Pad-Isolation.zip
           if-no-files-found: error
