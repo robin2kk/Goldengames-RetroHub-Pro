@@ -10,27 +10,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install host prerequisites
-        run: sudo apt-get update && sudo apt-get install -y clang-18 lld-18 cmake make pkg-config git
-      - name: Fetch PS5 SDK
+        run: sudo apt-get update && sudo apt-get install -y clang-18 lld-18 cmake make pkg-config git curl tar
+      - name: Build PS5 SDK
         run: |
           git clone --depth 1 https://github.com/ps5-payload-dev/sdk.git /tmp/ps5sdk-src
           cd /tmp/ps5sdk-src
           make
           sudo make install DESTDIR=/opt/ps5-payload-sdk || true
-      - name: Verify toolchain
+      - name: Install pinned PacBrew ports
         run: |
-          find /opt/ps5-payload-sdk -maxdepth 3 -type f | sort | head -100
-          test -x /opt/ps5-payload-sdk/bin/prospero-clang
+          curl -L --fail --retry 3 -o /tmp/ps5-payload-dev.tar.gz https://github.com/ps5-payload-dev/pacbrew-repo/releases/download/v0.40.2/ps5-payload-dev.tar.gz
+          echo "a85f65de418a8e6a898c6c3e3c870d50fff7618a200e4dd59ea9692af6ecec4d  /tmp/ps5-payload-dev.tar.gz" | sha256sum -c -
+          mkdir -p /tmp/pacbrew
+          tar -xzf /tmp/ps5-payload-dev.tar.gz -C /tmp/pacbrew
+          PORTROOT="$(find /tmp/pacbrew -type f -name libSDL2.a -printf '%h\n' | head -1 | xargs dirname)"
+          test -n "$PORTROOT"
+          echo "PORTROOT=$PORTROOT" >> "$GITHUB_ENV"
+          find "$PORTROOT" -name 'libSDL2*.a' -o -name 'SDL.h' | head -30
       - name: Build
         working-directory: native-ui
-        run: make SDK=/opt/ps5-payload-sdk
+        run: make SDK=/opt/ps5-payload-sdk PORTROOT="$PORTROOT"
       - name: Package
         run: |
           mkdir -p dist/goldengames-retrohub
           cp native-ui/build/*.elf dist/goldengames-retrohub/
           cp native-ui/README.md dist/
           cd dist && zip -r ../Goldengames-RetroHub-Pro-v0.2.0-Native-Test.zip .
+          cd .. && sha256sum Goldengames-RetroHub-Pro-v0.2.0-Native-Test.zip > Goldengames-RetroHub-Pro-v0.2.0-Native-Test.sha256
       - uses: actions/upload-artifact@v4
         with:
           name: Goldengames-RetroHub-Pro-v0.2.0-Native-Test
-          path: Goldengames-RetroHub-Pro-v0.2.0-Native-Test.zip
+          path: |
+            Goldengames-RetroHub-Pro-v0.2.0-Native-Test.zip
+            Goldengames-RetroHub-Pro-v0.2.0-Native-Test.sha256
