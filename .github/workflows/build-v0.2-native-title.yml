@@ -16,9 +16,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Prepare GPL native-title foundation
         run: |
-          git clone https://github.com/blackbearreloaded/ps5-native-app-boilerplate.git foundation
+          git clone --depth 1 https://github.com/blackbearreloaded/ProsperoLight.git foundation
           cd foundation
-          git checkout 722f2227a8bb6fa2229120546995b6562552c752
           rm -rf src
           mkdir src
           cp ../native-title/main.cpp src/
@@ -76,14 +75,14 @@ jobs:
         run: |
           cd foundation
           rm -f runtime/libc.prx
-          make app
+          APP_STATIC_ARCHIVES="" APP_INCLUDE_PATHS="src" APP_DEFINITIONS="" make app
           cp ../native-title/THIRD_PARTY_NOTICES.md dist/PPSA99202/
           cp ../native-title/ARCHITECTURE.md dist/PPSA99202/
           cp ../native-title/*.c ../native-title/*.cpp ../native-title/*.h dist/PPSA99202/
-          (cd dist && zip -r ../Goldengames-RetroHub-Pro-v0.2.0-Native-Pad-Dynamic.zip PPSA99202)
-          sha256sum Goldengames-RetroHub-Pro-v0.2.0-Native-Pad-Dynamic.zip
+          (cd dist && zip -r ../Goldengames-RetroHub-Pro-v0.2.0-Native-Pad-ProsperoLight.zip PPSA99202)
+          sha256sum Goldengames-RetroHub-Pro-v0.2.0-Native-Pad-ProsperoLight.zip
       - uses: actions/upload-artifact@v4
         with:
-          name: Goldengames-RetroHub-Pro-v0.2.0-Native-Pad-Dynamic
-          path: foundation/Goldengames-RetroHub-Pro-v0.2.0-Native-Pad-Dynamic.zip
+          name: Goldengames-RetroHub-Pro-v0.2.0-Native-Pad-ProsperoLight
+          path: foundation/Goldengames-RetroHub-Pro-v0.2.0-Native-Pad-ProsperoLight.zip
           if-no-files-found: error
