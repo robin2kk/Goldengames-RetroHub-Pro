@@ -26,16 +26,6 @@ jobs:
           cp ../native-title/diagnostic_frame.h src/
           cp ../native-title/pad_ps5.cpp src/
           cp ../native-title/pad_ps5.h src/
-          cat > src/pad_link_stub.c <<'C'
-          #include <stdint.h>
-          int scePadInit(void){return 0;}
-          int scePadOpen(int32_t a,int32_t b,int32_t c,const void*d){return -1;}
-          int scePadRead(int32_t a,void*b,int32_t c){return -1;}
-          int scePadClose(int32_t a){return 0;}
-          int sceUserServiceInitialize(const void*a){return 0;}
-          int sceUserServiceGetInitialUser(int32_t*a){return -1;}
-          int sceUserServiceTerminate(void){return 0;}
-          C
           cat > sce_sys/param.json <<'JSON'
           {
             "ageLevel":{"default":0},
@@ -85,7 +75,7 @@ jobs:
         run: |
           cd foundation
           rm -f runtime/libc.prx
-          APP_STATIC_ARCHIVES="" make app
+          make app
           cp ../native-title/THIRD_PARTY_NOTICES.md dist/PPSA99202/
           cp ../native-title/ARCHITECTURE.md dist/PPSA99202/
           cp ../native-title/*.c ../native-title/*.cpp ../native-title/*.h dist/PPSA99202/
