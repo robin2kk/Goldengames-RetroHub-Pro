@@ -1,0 +1,36 @@
+name: Build RetroHub v0.2 Native
+on:
+  workflow_dispatch:
+  push:
+    branches: [dev-v0.2-native-ui]
+    paths: ['native-ui/**','.github/workflows/build-v0.2-native.yml']
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install host prerequisites
+        run: sudo apt-get update && sudo apt-get install -y clang-18 lld-18 cmake make pkg-config git
+      - name: Fetch PS5 SDK
+        run: |
+          git clone --depth 1 https://github.com/ps5-payload-dev/sdk.git /tmp/ps5sdk-src
+          cd /tmp/ps5sdk-src
+          make
+          sudo make install DESTDIR=/opt/ps5-payload-sdk || true
+      - name: Verify toolchain
+        run: |
+          find /opt/ps5-payload-sdk -maxdepth 3 -type f | sort | head -100
+          test -x /opt/ps5-payload-sdk/bin/prospero-clang
+      - name: Build
+        working-directory: native-ui
+        run: make SDK=/opt/ps5-payload-sdk
+      - name: Package
+        run: |
+          mkdir -p dist/goldengames-retrohub
+          cp native-ui/build/*.elf dist/goldengames-retrohub/
+          cp native-ui/README.md dist/
+          cd dist && zip -r ../Goldengames-RetroHub-Pro-v0.2.0-Native-Test.zip .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Goldengames-RetroHub-Pro-v0.2.0-Native-Test
+          path: Goldengames-RetroHub-Pro-v0.2.0-Native-Test.zip
