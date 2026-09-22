@@ -72,6 +72,7 @@ jobs:
       - name: Build and sign native title
         run: |
           cd foundation
+          rm -f runtime/libc.prx
           make app
           cp ../native-title/THIRD_PARTY_NOTICES.md dist/PPSA99202/
           cp ../native-title/ARCHITECTURE.md dist/PPSA99202/
