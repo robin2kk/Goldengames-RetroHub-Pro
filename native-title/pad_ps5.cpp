@@ -44,8 +44,8 @@ extern "C" int gg_pad_open(void){
 }
 extern "C" uint32_t gg_pad_pressed(void){
  if(handle<0||!pad_read)return 0;PadSample s{};if(pad_read(handle,&s,1)<=0)return 0;
- uint32_t b=buttons(s),fresh=b&~previous;previous=b,out=0;
+ uint32_t b=buttons(s), fresh=b&~previous, out=0; previous=b;
  if(fresh&0x000080)out|=GG_PAD_LEFT;if(fresh&0x000020)out|=GG_PAD_RIGHT;
- if(fresh&0x400000)out|=GG_PAD_CROSS;if(fresh&0x200000)out|=GG_PAD_CIRCLE;return out;
+ if(fresh&0x004000)out|=GG_PAD_CROSS;if(fresh&0x002000)out|=GG_PAD_CIRCLE;return out;
 }
 extern "C" void gg_pad_close(void){if(handle>=0&&pad_close)pad_close(handle);handle=-1;}
