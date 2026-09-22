@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 #include "retrohub_ui.h"
+int sceNotificationSend(int userId, _Bool isLogged, const char *payload);
+static void ui_notify(const char *s){char p[1024];snprintf(p,sizeof(p),"{\"rawData\":{\"viewTemplateType\":\"InteractiveToastTemplateB\",\"channelType\":\"Downloads\",\"useCaseId\":\"IDC\",\"toastOverwriteType\":\"No\",\"isImmediate\":true,\"priority\":100,\"viewData\":{\"message\":{\"body\":\"%s\"}},\"platformViews\":{\"previewDisabled\":{\"viewData\":{\"message\":{\"body\":\"%s\"}}}}},\"localNotificationId\":\"786420029\"}",s,s);sceNotificationSend(0xFE,1,p);}
 
 #define UI_LOG "/data/goldengames_retrohub_ui.log"
 
@@ -19,22 +21,22 @@ static void ui_log_sdl(const char *stage){
 
 int main(void){
  SDL_Window*w=0;SDL_Renderer*r=0;SDL_Event e;RetroHubState s;int run=1;
- remove(UI_LOG);
+ remove(UI_LOG);ui_notify("RetroHub UI 1 main reached");
  ui_log("Goldengames RetroHub UI start");
  memset(&s,0,sizeof(s));s.screen=RH_SYSTEMS;
  ui_log("calling SDL_Init");
- if(SDL_Init(SDL_INIT_VIDEO|SDL_INIT_GAMECONTROLLER)<0){ui_log_sdl("SDL_Init FAILED");return 1;}
- ui_log("SDL_Init OK");
+ if(SDL_Init(SDL_INIT_VIDEO|SDL_INIT_GAMECONTROLLER)<0){ui_notify("RetroHub UI FAILED SDL Init");ui_log_sdl("SDL_Init FAILED");return 1;}
+ ui_notify("RetroHub UI 2 SDL OK");ui_log("SDL_Init OK");
  ui_log("creating window 1920x1080");
  w=SDL_CreateWindow("Goldengames RetroHub Pro",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,1920,1080,0);
- if(!w){ui_log_sdl("SDL_CreateWindow FAILED");SDL_Quit();return 2;}
- ui_log("SDL_CreateWindow OK");
+ if(!w){ui_notify("RetroHub UI FAILED window");ui_log_sdl("SDL_CreateWindow FAILED");SDL_Quit();return 2;}
+ ui_notify("RetroHub UI 3 window OK");ui_log("SDL_CreateWindow OK");
  ui_log("creating accelerated renderer");
  r=SDL_CreateRenderer(w,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
  if(!r){ui_log_sdl("accelerated renderer FAILED; trying software");r=SDL_CreateRenderer(w,-1,SDL_RENDERER_SOFTWARE);}
- if(!r){ui_log_sdl("software renderer FAILED");SDL_DestroyWindow(w);SDL_Quit();return 3;}
- ui_log("renderer OK");
- ui_log("entering main loop");
+ if(!r){ui_notify("RetroHub UI FAILED renderer");ui_log_sdl("software renderer FAILED");SDL_DestroyWindow(w);SDL_Quit();return 3;}
+ ui_notify("RetroHub UI 4 renderer OK");ui_log("renderer OK");
+ ui_notify("RetroHub UI 5 entering loop");ui_log("entering main loop");
  while(run){
   while(SDL_PollEvent(&e)){
    if(e.type==SDL_QUIT)run=0;
