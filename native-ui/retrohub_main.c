@@ -1,8 +1,10 @@
 #include <SDL.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "retrohub_ui.h"
 int sceNotificationSend(int userId, _Bool isLogged, const char *payload);
+int sceSystemServiceHideSplashScreen(void);
 static void ui_notify(const char *s){char p[1024];snprintf(p,sizeof(p),"{\"rawData\":{\"viewTemplateType\":\"InteractiveToastTemplateB\",\"channelType\":\"Downloads\",\"useCaseId\":\"IDC\",\"toastOverwriteType\":\"No\",\"isImmediate\":true,\"priority\":100,\"viewData\":{\"message\":{\"body\":\"%s\"}},\"platformViews\":{\"previewDisabled\":{\"viewData\":{\"message\":{\"body\":\"%s\"}}}}},\"localNotificationId\":\"786420029\"}",s,s);sceNotificationSend(0xFE,1,p);}
 
 #define UI_LOG "/data/goldengames_retrohub_ui.log"
@@ -24,19 +26,21 @@ int main(void){
  remove(UI_LOG);ui_notify("RetroHub UI 1 main reached");
  ui_log("Goldengames RetroHub UI start");
  memset(&s,0,sizeof(s));s.screen=RH_SYSTEMS;
+ putenv("SDL_VIDEODRIVER=ps5");SDL_SetHint("SDL_VIDEODRIVER","ps5");ui_log("SDL_VIDEODRIVER=ps5");
  ui_log("calling SDL_Init");
  if(SDL_Init(SDL_INIT_VIDEO|SDL_INIT_GAMECONTROLLER)<0){ui_notify("RetroHub UI FAILED SDL Init");ui_log_sdl("SDL_Init FAILED");return 1;}
  ui_notify("RetroHub UI 2 SDL OK");ui_log("SDL_Init OK");
  ui_log("creating window 1920x1080");
- w=SDL_CreateWindow("Goldengames RetroHub Pro",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,1920,1080,0);
+ w=SDL_CreateWindow("Goldengames RetroHub Pro",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,1920,1080,SDL_WINDOW_FULLSCREEN);
  if(!w){ui_notify("RetroHub UI FAILED window");ui_log_sdl("SDL_CreateWindow FAILED");SDL_Quit();return 2;}
- ui_notify("RetroHub UI 3 window OK");ui_log("SDL_CreateWindow OK");
+ ui_notify("RetroHub UI 3 window OK");ui_log("SDL_CreateWindow OK");sceSystemServiceHideSplashScreen();ui_log("sceSystemServiceHideSplashScreen called");
  ui_log("creating accelerated renderer");
- r=SDL_CreateRenderer(w,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
- if(!r){ui_log_sdl("accelerated renderer FAILED; trying software");r=SDL_CreateRenderer(w,-1,SDL_RENDERER_SOFTWARE);}
+ r=SDL_CreateRenderer(w,-1,SDL_RENDERER_SOFTWARE|SDL_RENDERER_TARGETTEXTURE);
+ if(!r){ui_log_sdl("software target renderer FAILED; trying vsync");r=SDL_CreateRenderer(w,-1,SDL_RENDERER_SOFTWARE|SDL_RENDERER_PRESENTVSYNC);}
+ if(!r){ui_log_sdl("software vsync renderer FAILED; trying software");r=SDL_CreateRenderer(w,-1,SDL_RENDERER_SOFTWARE);}
  if(!r){ui_notify("RetroHub UI FAILED renderer");ui_log_sdl("software renderer FAILED");SDL_DestroyWindow(w);SDL_Quit();return 3;}
  ui_notify("RetroHub UI 4 renderer OK");ui_log("renderer OK");
- ui_notify("RetroHub UI 5 entering loop");ui_log("entering main loop");
+ SDL_SetRenderDrawBlendMode(r,SDL_BLENDMODE_BLEND);ui_notify("RetroHub UI 5 entering loop");ui_log("entering main loop");
  while(run){
   while(SDL_PollEvent(&e)){
    if(e.type==SDL_QUIT)run=0;
