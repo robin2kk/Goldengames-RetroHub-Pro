@@ -13,7 +13,7 @@
 extern "C" {
 size_t sceKernelGetDirectMemorySize();
 int sceKernelAllocateDirectMemory(int64_t,int64_t,size_t,size_t,int,int64_t*);
-int sceKernelMapDirectMemory(void**,size_t,int,int64_t,size_t);
+int sceKernelMapDirectMemory(void**,size_t,int,int,int64_t,size_t);
 int sceVideoOutOpen(int32_t,int32_t,int32_t,const void*);
 int sceVideoOutSetFlipRate(int32_t,int32_t);
 int sceVideoOutSubmitFlip(int32_t,int32_t,uint32_t,int64_t);
