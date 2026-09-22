@@ -22,37 +22,22 @@ static void ui_log_sdl(const char *stage){
 }
 
 int main(void){
- SDL_Window*w=0;SDL_Renderer*r=0;SDL_Event e;RetroHubState s;int run=1;
- remove(UI_LOG);ui_notify("RetroHub UI 1 main reached");
- ui_log("Goldengames RetroHub UI start");
- memset(&s,0,sizeof(s));s.screen=RH_SYSTEMS;
- putenv("SDL_VIDEODRIVER=ps5");SDL_SetHint("SDL_VIDEODRIVER","ps5");ui_log("SDL_VIDEODRIVER=ps5");
- ui_log("calling SDL_Init");
- if(SDL_Init(SDL_INIT_VIDEO|SDL_INIT_GAMECONTROLLER)<0){ui_notify("RetroHub UI FAILED SDL Init");ui_log_sdl("SDL_Init FAILED");return 1;}
- ui_notify("RetroHub UI 2 SDL OK");ui_log("SDL_Init OK");
- ui_log("creating window 1920x1080");
+ SDL_Window*w=0;SDL_Renderer*r=0;
+ remove(UI_LOG);ui_notify("RetroHub TEST 1 main");SDL_Delay(1500);
+ putenv("SDL_VIDEODRIVER=ps5");SDL_SetHint("SDL_VIDEODRIVER","ps5");
+ if(SDL_Init(SDL_INIT_VIDEO)<0){ui_notify("RetroHub TEST FAIL SDL");return 1;}
+ ui_notify("RetroHub TEST 2 SDL");SDL_Delay(1500);
  w=SDL_CreateWindow("Goldengames RetroHub Pro",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,1920,1080,SDL_WINDOW_FULLSCREEN);
- if(!w){ui_notify("RetroHub UI FAILED window");ui_log_sdl("SDL_CreateWindow FAILED");SDL_Quit();return 2;}
- ui_notify("RetroHub UI 3 window OK");ui_log("SDL_CreateWindow OK");sceSystemServiceHideSplashScreen();ui_log("sceSystemServiceHideSplashScreen called");
- ui_log("creating accelerated renderer");
+ if(!w){ui_notify("RetroHub TEST FAIL WINDOW");SDL_Quit();return 2;}
+ sceSystemServiceHideSplashScreen();ui_notify("RetroHub TEST 3 WINDOW");SDL_Delay(1500);
  r=SDL_CreateRenderer(w,-1,SDL_RENDERER_SOFTWARE|SDL_RENDERER_TARGETTEXTURE);
- if(!r){ui_log_sdl("software target renderer FAILED; trying vsync");r=SDL_CreateRenderer(w,-1,SDL_RENDERER_SOFTWARE|SDL_RENDERER_PRESENTVSYNC);}
- if(!r){ui_log_sdl("software vsync renderer FAILED; trying software");r=SDL_CreateRenderer(w,-1,SDL_RENDERER_SOFTWARE);}
- if(!r){ui_notify("RetroHub UI FAILED renderer");ui_log_sdl("software renderer FAILED");SDL_DestroyWindow(w);SDL_Quit();return 3;}
- ui_notify("RetroHub UI 4 renderer OK");ui_log("renderer OK");
- SDL_SetRenderDrawBlendMode(r,SDL_BLENDMODE_BLEND);ui_notify("RetroHub UI 5 entering loop");ui_log("entering main loop");
- while(run){
-  while(SDL_PollEvent(&e)){
-   if(e.type==SDL_QUIT){ui_notify("RetroHub UI EXIT SDL_QUIT");ui_log("SDL_QUIT received");run=0;}
-   if(e.type==SDL_CONTROLLERBUTTONDOWN){
-    if(e.cbutton.button==SDL_CONTROLLER_BUTTON_DPAD_LEFT)retrohub_move(&s,-1);
-    else if(e.cbutton.button==SDL_CONTROLLER_BUTTON_DPAD_RIGHT)retrohub_move(&s,1);
-    else if(e.cbutton.button==SDL_CONTROLLER_BUTTON_A)retrohub_activate(&s);
-    else if(e.cbutton.button==SDL_CONTROLLER_BUTTON_B){if(s.screen==RH_GAMES)retrohub_back(&s);else{ui_notify("RetroHub UI EXIT controller B");ui_log("controller B requested exit");run=0;}}
-   }
-  }
-  retrohub_render(r,&s);SDL_RenderPresent(r);SDL_Delay(8);
- }
- ui_notify("RetroHub UI leaving loop");ui_log("leaving main loop");
- SDL_DestroyRenderer(r);SDL_DestroyWindow(w);SDL_Quit();ui_log("UI exit");return 0;
+ if(!r)r=SDL_CreateRenderer(w,-1,SDL_RENDERER_SOFTWARE);
+ if(!r){ui_notify("RetroHub TEST FAIL RENDERER");SDL_DestroyWindow(w);SDL_Quit();return 3;}
+ ui_notify("RetroHub TEST 4 RENDERER");SDL_Delay(1500);
+ SDL_SetRenderDrawColor(r,255,0,255,255);SDL_RenderClear(r);SDL_RenderPresent(r);
+ ui_notify("RetroHub TEST 5 MAGENTA PRESENTED");SDL_Delay(10000);
+ SDL_SetRenderDrawColor(r,0,255,0,255);SDL_RenderClear(r);SDL_RenderPresent(r);
+ ui_notify("RetroHub TEST 6 GREEN PRESENTED");SDL_Delay(10000);
+ ui_notify("RetroHub TEST 7 END");SDL_Delay(2000);
+ SDL_DestroyRenderer(r);SDL_DestroyWindow(w);SDL_Quit();return 0;
 }
