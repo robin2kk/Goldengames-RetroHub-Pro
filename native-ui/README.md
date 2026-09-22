@@ -18,3 +18,4 @@ Expected ROM root: /data/homebrew/RetroArch/roms
 Expected core root: /data/homebrew/RetroArch/cores
 
 Firmware status: 5.10 is the owner's hardware test target. Other firmware versions remain unverified until tested.
+
