@@ -24,6 +24,12 @@ jobs:
           cp ../native-title/platform_ps5.cpp src/
           cp ../native-title/diagnostic_frame.c src/
           cp ../native-title/diagnostic_frame.h src/
+          cp ../native-title/console_ui.c src/
+          cp ../native-title/console_ui.h src/
+          cp ../native-title/rom_scanner.c src/
+          cp ../native-title/rom_scanner.h src/
+          cp ../native-title/pad_ps5.cpp src/
+          cp ../native-title/pad_ps5.h src/
           cat > sce_sys/param.json <<'JSON'
           {
             "ageLevel":{"default":0},
