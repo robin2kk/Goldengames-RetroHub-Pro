@@ -22,22 +22,32 @@ static void ui_log_sdl(const char *stage){
 }
 
 int main(void){
- SDL_Window*w=0;SDL_Renderer*r=0;
- remove(UI_LOG);ui_notify("RetroHub TEST 1 main");SDL_Delay(1500);
+ SDL_Window*w=0;SDL_Renderer*r=0;SDL_Event e;RetroHubState s;int run=1;
+ remove(UI_LOG);
  putenv("SDL_VIDEODRIVER=ps5");SDL_SetHint("SDL_VIDEODRIVER","ps5");
- if(SDL_Init(SDL_INIT_VIDEO)<0){ui_notify("RetroHub TEST FAIL SDL");return 1;}
- ui_notify("RetroHub TEST 2 SDL");SDL_Delay(1500);
+ if(SDL_Init(SDL_INIT_VIDEO|SDL_INIT_GAMECONTROLLER|SDL_INIT_JOYSTICK|SDL_INIT_EVENTS)<0){ui_notify("RetroHub FAIL SDL");return 1;}
  w=SDL_CreateWindow("Goldengames RetroHub Pro",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,1920,1080,SDL_WINDOW_FULLSCREEN);
- if(!w){ui_notify("RetroHub TEST FAIL WINDOW");SDL_Quit();return 2;}
- sceSystemServiceHideSplashScreen();ui_notify("RetroHub TEST 3 WINDOW");SDL_Delay(1500);
+ if(!w){ui_notify("RetroHub FAIL WINDOW");SDL_Quit();return 2;}
+ sceSystemServiceHideSplashScreen();
  r=SDL_CreateRenderer(w,-1,SDL_RENDERER_SOFTWARE|SDL_RENDERER_TARGETTEXTURE);
+ if(!r)r=SDL_CreateRenderer(w,-1,SDL_RENDERER_SOFTWARE|SDL_RENDERER_PRESENTVSYNC);
  if(!r)r=SDL_CreateRenderer(w,-1,SDL_RENDERER_SOFTWARE);
- if(!r){ui_notify("RetroHub TEST FAIL RENDERER");SDL_DestroyWindow(w);SDL_Quit();return 3;}
- ui_notify("RetroHub TEST 4 RENDERER");SDL_Delay(1500);
- SDL_SetRenderDrawColor(r,255,0,255,255);SDL_RenderClear(r);SDL_RenderPresent(r);
- ui_notify("RetroHub TEST 5 MAGENTA PRESENTED");SDL_Delay(10000);
- SDL_SetRenderDrawColor(r,0,255,0,255);SDL_RenderClear(r);SDL_RenderPresent(r);
- ui_notify("RetroHub TEST 6 GREEN PRESENTED");SDL_Delay(10000);
- ui_notify("RetroHub TEST 7 END");SDL_Delay(2000);
- SDL_DestroyRenderer(r);SDL_DestroyWindow(w);SDL_Quit();return 0;
+ if(!r){ui_notify("RetroHub FAIL RENDERER");SDL_DestroyWindow(w);SDL_Quit();return 3;}
+ SDL_SetRenderDrawBlendMode(r,SDL_BLENDMODE_BLEND);
+ memset(&s,0,sizeof(s));s.screen=RH_SYSTEMS;
+ ui_notify("Goldengames RetroHub UI LIVE");
+ while(run){
+  while(SDL_PollEvent(&e)){
+   if(e.type==SDL_CONTROLLERBUTTONDOWN){
+    if(e.cbutton.button==SDL_CONTROLLER_BUTTON_DPAD_LEFT)retrohub_move(&s,-1);
+    else if(e.cbutton.button==SDL_CONTROLLER_BUTTON_DPAD_RIGHT)retrohub_move(&s,1);
+    else if(e.cbutton.button==SDL_CONTROLLER_BUTTON_A)retrohub_activate(&s);
+    else if(e.cbutton.button==SDL_CONTROLLER_BUTTON_B && s.screen==RH_GAMES)retrohub_back(&s);
+   }
+  }
+  retrohub_render(r,&s);
+  SDL_RenderPresent(r);
+  SDL_Delay(16);
+ }
+ return 0;
 }
