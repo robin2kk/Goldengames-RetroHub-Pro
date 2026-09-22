@@ -43,16 +43,16 @@ int main(void){
  SDL_SetRenderDrawBlendMode(r,SDL_BLENDMODE_BLEND);ui_notify("RetroHub UI 5 entering loop");ui_log("entering main loop");
  while(run){
   while(SDL_PollEvent(&e)){
-   if(e.type==SDL_QUIT)run=0;
+   if(e.type==SDL_QUIT){ui_notify("RetroHub UI EXIT SDL_QUIT");ui_log("SDL_QUIT received");run=0;}
    if(e.type==SDL_CONTROLLERBUTTONDOWN){
     if(e.cbutton.button==SDL_CONTROLLER_BUTTON_DPAD_LEFT)retrohub_move(&s,-1);
     else if(e.cbutton.button==SDL_CONTROLLER_BUTTON_DPAD_RIGHT)retrohub_move(&s,1);
     else if(e.cbutton.button==SDL_CONTROLLER_BUTTON_A)retrohub_activate(&s);
-    else if(e.cbutton.button==SDL_CONTROLLER_BUTTON_B){if(s.screen==RH_GAMES)retrohub_back(&s);else run=0;}
+    else if(e.cbutton.button==SDL_CONTROLLER_BUTTON_B){if(s.screen==RH_GAMES)retrohub_back(&s);else{ui_notify("RetroHub UI EXIT controller B");ui_log("controller B requested exit");run=0;}}
    }
   }
   retrohub_render(r,&s);SDL_RenderPresent(r);SDL_Delay(8);
  }
- ui_log("leaving main loop");
+ ui_notify("RetroHub UI leaving loop");ui_log("leaving main loop");
  SDL_DestroyRenderer(r);SDL_DestroyWindow(w);SDL_Quit();ui_log("UI exit");return 0;
 }
