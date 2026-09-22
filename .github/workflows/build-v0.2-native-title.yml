@@ -79,10 +79,10 @@ jobs:
           cp ../native-title/THIRD_PARTY_NOTICES.md dist/PPSA99202/
           cp ../native-title/ARCHITECTURE.md dist/PPSA99202/
           cp ../native-title/*.c ../native-title/*.cpp ../native-title/*.h dist/PPSA99202/
-          (cd dist && zip -r ../Goldengames-RetroHub-Pro-v0.2.0-Native-Pad-Isolation.zip PPSA99202)
-          sha256sum Goldengames-RetroHub-Pro-v0.2.0-Native-Pad-Isolation.zip
+          (cd dist && zip -r ../Goldengames-RetroHub-Pro-v0.2.0-Native-Pad-Dynamic.zip PPSA99202)
+          sha256sum Goldengames-RetroHub-Pro-v0.2.0-Native-Pad-Dynamic.zip
       - uses: actions/upload-artifact@v4
         with:
-          name: Goldengames-RetroHub-Pro-v0.2.0-Native-Pad-Isolation
-          path: foundation/Goldengames-RetroHub-Pro-v0.2.0-Native-Pad-Isolation.zip
+          name: Goldengames-RetroHub-Pro-v0.2.0-Native-Pad-Dynamic
+          path: foundation/Goldengames-RetroHub-Pro-v0.2.0-Native-Pad-Dynamic.zip
           if-no-files-found: error
