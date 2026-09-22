@@ -1,0 +1,85 @@
+name: Build v0.2 Native Title
+
+on:
+  push:
+    branches: [dev-v0.2-native-ui]
+    paths:
+      - 'native-title/**'
+      - '.github/workflows/build-v0.2-native-title.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare GPL native-title foundation
+        run: |
+          git clone https://github.com/blackbearreloaded/ps5-native-app-boilerplate.git foundation
+          cd foundation
+          git checkout 722f2227a8bb6fa2229120546995b6562552c752
+          rm -rf src
+          mkdir src
+          cp ../native-title/main.cpp src/
+          cp ../native-title/platform_ps5.cpp src/
+          cp ../native-title/diagnostic_frame.c src/
+          cp ../native-title/diagnostic_frame.h src/
+          cat > sce_sys/param.json <<'JSON'
+          {
+            "ageLevel":{"default":0},
+            "applicationCategoryType":0,
+            "applicationDrmType":"free",
+            "attribute":0,"attribute2":0,"attribute3":0,
+            "conceptId":"99202",
+            "contentBadgeType":1,
+            "contentId":"UP9000-PPSA99202_00-GOLDENRETROHUB02",
+            "contentVersion":"00.002.000",
+            "downloadDataSize":256,
+            "gameIntent":{"permittedIntents":[{"intentType":"launchActivity"}]},
+            "localizedParameters":{"defaultLanguage":"en-US","en-US":{"titleName":"Goldengames RetroHub Pro"}},
+            "masterVersion":"00.02",
+            "pubtools":{"creationDate":"2026-09-23 00:00:00","loudnessSnd0":"-28.00","toolVersion":"2.00"},
+            "requiredSystemSoftwareVersion":"0x0000000000000000",
+            "sdkVersion":"0x0000000000000000",
+            "titleId":"PPSA99202",
+            "versionFileUri":""
+          }
+          JSON
+          rm -f sce_sys/pic0.dds sce_sys/pic1.dds sce_sys/snd0.at9
+          python3 - <<'PY'
+          import struct,zlib
+          W=H=512
+          rows=[]
+          for y in range(H):
+              row=bytearray([0])
+              for x in range(W):
+                  if 82<x<430 and 185<y<327:
+                      rgb=(245,245,245)
+                  elif 98<x<414 and 201<y<311:
+                      rgb=(10,18,34)
+                  elif 110<x<402 and 214<y<226:
+                      rgb=(45,125,246)
+                  else:
+                      rgb=(9,13,24)
+                  row += bytes((*rgb,255))
+              rows.append(bytes(row))
+          raw=b''.join(rows)
+          def chunk(t,d):
+              return struct.pack(">I",len(d))+t+d+struct.pack(">I",zlib.crc32(t+d)&0xffffffff)
+          png=b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack(">IIBBBBB",W,H,8,6,0,0,0))+chunk(b'IDAT',zlib.compress(raw,9))+chunk(b'IEND',b'')
+          open("sce_sys/icon0.png","wb").write(png)
+          PY
+      - name: Build and sign native title
+        run: |
+          cd foundation
+          make app
+          cp ../native-title/THIRD_PARTY_NOTICES.md dist/PPSA99202/
+          cp ../native-title/ARCHITECTURE.md dist/PPSA99202/
+          cp ../native-title/*.c ../native-title/*.cpp ../native-title/*.h dist/PPSA99202/
+          (cd dist && zip -r ../Goldengames-RetroHub-Pro-v0.2.0-Native-Build001.zip PPSA99202)
+          sha256sum Goldengames-RetroHub-Pro-v0.2.0-Native-Build001.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Goldengames-RetroHub-Pro-v0.2.0-Native-Build001
+          path: foundation/Goldengames-RetroHub-Pro-v0.2.0-Native-Build001.zip
+          if-no-files-found: error
