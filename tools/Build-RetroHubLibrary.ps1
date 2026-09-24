@@ -1,6 +1,7 @@
 param(
-  [Parameter(Mandatory=$true)][string]$ContentRoot,
-  [string]$Output = ".\\RetroHub-library"
+  [Parameter(Mandatory=$true)][string]$RetroArchRoot,
+  [string]$Output = ".\\RetroHub-library",
+  [string]$PS5RetroArchRoot = "/data/homebrew/RetroArch"
 )
 $ErrorActionPreference = "Stop"
 $systems = @{
@@ -9,12 +10,12 @@ $systems = @{
 }
 New-Item -ItemType Directory -Force -Path $Output | Out-Null
 foreach($system in $systems.Keys){
-  $dir=Join-Path $ContentRoot $system
+  $dir=Join-Path $RetroArchRoot ("roms\"+$system)
   $lines=@()
   if(Test-Path $dir){
     Get-ChildItem -LiteralPath $dir -File | Sort-Object Name | ForEach-Object {
       if($systems[$system] -contains $_.Extension.ToLowerInvariant()){
-        $lines += "/app0/content/$system/$($_.Name)"
+        $lines += "$PS5RetroArchRoot/roms/$system/$($_.Name)"
       }
     }
   }
