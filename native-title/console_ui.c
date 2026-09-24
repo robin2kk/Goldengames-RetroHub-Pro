@@ -51,7 +51,7 @@ void gg_draw_console_browser(GGSurface s,int system,int selected,const GGGameLis
     list->folder_found?"FOUND":"NOT FOUND",list->manifest_found?"FOUND":"NOT FOUND");
   gg_draw_text(s,80,950,info,2,0xffffffff);
  }
- gg_draw_text(s,80,1000,"L1 R1 SYSTEM   LEFT RIGHT GAME   X PLAY   O RESCAN",2,0xffffffff);
+ gg_draw_text(s,80,1000,"UP DOWN SYSTEM   LEFT RIGHT GAME   X PLAY   O RESCAN",2,0xffffffff);
  if(launch_status<0)gg_draw_text(s,900,1000,"LAUNCH FAILED - CHECK WEBSRV AND RETROARCH",2,0xffff7777);
  if(list){
   int n=list->count;if(n>40)n=40;

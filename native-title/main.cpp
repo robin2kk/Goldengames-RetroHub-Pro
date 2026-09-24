@@ -34,8 +34,8 @@ int main(){
  for(;;){
    uint32_t p=pad_ok?gg_pad_pressed():0;
    if(p&GG_PAD_CIRCLE){gg_scan_games(kSystems[system],&games[system]);selected_game=0;launch_status=0;}
-   if(p&GG_PAD_L1){system=(system+kSystemCount-1)%kSystemCount;selected_game=0;launch_status=0;}
-   if(p&GG_PAD_R1){system=(system+1)%kSystemCount;selected_game=0;launch_status=0;}
+   if(p&(GG_PAD_L1|GG_PAD_UP)){system=(system+kSystemCount-1)%kSystemCount;selected_game=0;launch_status=0;}
+   if(p&(GG_PAD_R1|GG_PAD_DOWN)){system=(system+1)%kSystemCount;selected_game=0;launch_status=0;}
    if((p&GG_PAD_LEFT)&&games[system].count>0)
      selected_game=(selected_game+games[system].count-1)%games[system].count;
    if((p&GG_PAD_RIGHT)&&games[system].count>0)

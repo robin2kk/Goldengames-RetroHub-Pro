@@ -24,7 +24,7 @@ are copied into RetroHub.
 The screen reports whether it found a ROM folder or manifest for each system.
 If both say `NOT FOUND`, verify the PS5 path above or add the matching `.lst`.
 
-L1/R1 selects the system, Left/Right selects the game, Circle rescans the
+Up/Down or L1/R1 selects the system, Left/Right selects the game, Circle rescans the
 current system, and Cross sends its
 content path and matching core to the websrv payload launcher. A failed launch
 shows a message in the browser. Launch and return must be checked on PS5 5.10.
