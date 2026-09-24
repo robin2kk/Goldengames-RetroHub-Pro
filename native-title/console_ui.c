@@ -9,4 +9,33 @@ static void genesis(GGSurface s){rect(s,0,0,s.width,s.height,0xff08090b);rect(s,
 static void psx(GGSurface s){rect(s,0,0,s.width,s.height,0xffbcbcbc);rect(s,0,0,s.width,180,0xffd8d8d8);rect(s,0,180,s.width,8,0xff686868);rect(s,0,900,s.width,180,0xff707070);rect(s,1540,75,28,28,0xff4ca3d9);rect(s,1585,75,28,28,0xffd95757);rect(s,1630,75,28,28,0xff61ad69);rect(s,1675,75,28,28,0xffd79ac2);}
 static void card(GGSurface s,int x,int y,int w,int h,int active,uint32_t accent){if(active){rect(s,x-10,y-10,w+20,h+20,accent);rect(s,x-4,y-4,w+8,h+8,0xffffffff);}else rect(s,x-4,y-4,w+8,h+8,0xff55585e);rect(s,x,y,w,h,0xff20242c);rect(s,x+18,y+18,w-36,h-36,0xff303640);}
 static uint32_t game_color(const GGGame *g,int n){uint32_t h=2166136261u;const unsigned char*p=(const unsigned char*)g->filename;while(*p){h^=*p++;h*=16777619u;}h^=(uint32_t)n*0x9e3779b9u;return 0xff000000u|0x303030u|(h&0x00cfcfcfu);}
-void gg_draw_console_browser(GGSurface s,int system,int selected,const GGGameList *list){static const uint32_t accents[5]={0xffb21f2d,0xff6b4d91,0xffe5b82e,0xffc62828,0xff4ca3d9};switch(system){case 0:nes(s);break;case 1:snes(s);break;case 2:n64(s);break;case 3:genesis(s);break;default:psx(s);break;}int cy=350;for(int d=-2;d<=2;d++){int idx=selected+d;int w=d==0?330:220,h=d==0?430:300,x=960+d*310-w/2,y=cy+(d==0?0:65);if(list&&idx>=0&&idx<list->count){card(s,x,y,w,h,d==0,accents[system]);rect(s,x+28,y+28,w-56,h-56,game_color(&list->games[idx],idx));}else{card(s,x,y,w,h,0,accents[system]);rect(s,x,y,w,h,0xff111318);}}rect(s,0,860,s.width,6,accents[system]);if(list){int n=list->count;if(n>40)n=40;for(int i=0;i<n;i++)rect(s,80+i*18,820,10,22,accents[system]);}}
+void gg_draw_console_browser(GGSurface s,int system,int selected,const GGGameList *list){
+ static const uint32_t accents[5]={0xffb21f2d,0xff6b4d91,0xffe5b82e,0xffc62828,0xff4ca3d9};
+ static const char *systems[5]={"NINTENDO ENTERTAINMENT SYSTEM","SUPER NINTENDO","NINTENDO 64","SEGA GENESIS","PLAYSTATION"};
+ switch(system){case 0:nes(s);break;case 1:snes(s);break;case 2:n64(s);break;case 3:genesis(s);break;default:psx(s);break;}
+ gg_draw_text(s,78,72,"GOLDENGAMES RETROHUB PRO",4,0xff20242c);
+ gg_draw_text(s,78,128,systems[system],3,0xff20242c);
+ int cy=350;
+ for(int d=-2;d<=2;d++){
+  int idx=selected+d;
+  int w=d==0?330:220,h=d==0?430:300,x=960+d*310-w/2,y=cy+(d==0?0:65);
+  if(list&&idx>=0&&idx<list->count){
+   card(s,x,y,w,h,d==0,accents[system]);
+   rect(s,x+28,y+28,w-56,h-56,game_color(&list->games[idx],idx));
+  }else{
+   card(s,x,y,w,h,0,accents[system]);
+   rect(s,x,y,w,h,0xff111318);
+  }
+ }
+ rect(s,0,860,s.width,6,accents[system]);
+ if(list&&list->count>0&&selected>=0&&selected<list->count){
+  gg_draw_text(s,80,890,list->games[selected].title,3,0xffffffff);
+ }else{
+  gg_draw_text(s,80,890,"NO GAMES FOUND - ADD LIBRARY MANIFEST",2,0xffffffff);
+ }
+ gg_draw_text(s,80,1000,"L1 R1 SYSTEM   LEFT RIGHT GAME   X PLAY",2,0xffffffff);
+ if(list){
+  int n=list->count;if(n>40)n=40;
+  for(int i=0;i<n;i++)rect(s,80+i*18,820,10,22,accents[system]);
+ }
+}
