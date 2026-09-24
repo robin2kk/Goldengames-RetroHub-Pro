@@ -6,10 +6,8 @@
 extern "C" int sceSystemServiceHideSplashScreen(void);
 extern "C" int gg_platform_display_open(unsigned,unsigned);
 extern "C" int gg_platform_display_present(void);
-
 static const char* kSystems[]={"nes","snes","n64","genesis","psx"};
 static const int kSystemCount=5;
-
 int main(){
  if(!gg_platform_display_open(1920,1080))for(;;)usleep(1000000);
  sceSystemServiceHideSplashScreen();
@@ -20,15 +18,11 @@ int main(){
  int pad_ok=gg_pad_open();
  for(;;){
    uint32_t p=pad_ok?gg_pad_pressed():0;
-   if((p&GG_PAD_LEFT)&&system>0){system--;selected_game=0;}
-   if((p&GG_PAD_RIGHT)&&system<kSystemCount-1){system++;selected_game=0;}
-   if((p&GG_PAD_CROSS)&&games[system].count>0){
-     selected_game=(selected_game+1)%games[system].count;
-   }
-   if((p&GG_PAD_CIRCLE)&&games[system].count>0){
-     selected_game=(selected_game+games[system].count-1)%games[system].count;
-   }
-   gg_draw_console_browser(s,system,selected_game);
+   if(p&GG_PAD_L1){system=(system+kSystemCount-1)%kSystemCount;selected_game=0;}
+   if(p&GG_PAD_R1){system=(system+1)%kSystemCount;selected_game=0;}
+   if((p&GG_PAD_LEFT)&&games[system].count>0)selected_game=(selected_game+games[system].count-1)%games[system].count;
+   if((p&GG_PAD_RIGHT)&&games[system].count>0)selected_game=(selected_game+1)%games[system].count;
+   gg_draw_console_browser(s,system,selected_game,&games[system]);
    if(!gg_platform_display_present())for(;;)usleep(1000000);
    usleep(16000);
  }
