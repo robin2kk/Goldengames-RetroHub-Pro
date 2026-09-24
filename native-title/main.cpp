@@ -2,7 +2,7 @@
 #include "console_ui.h"
 #include "rom_scanner.h"
 #include "pad_ps5.h"
-#include "retroarch_launch.h"
+#include "websrv_launch.h"
 #include <unistd.h>
 #include <stdio.h>
 
@@ -12,7 +12,6 @@ extern "C" int gg_platform_display_present(void);
 
 static const char* kSystems[]={"nes","snes","n64","genesis","psx"};
 static const int kSystemCount=5;
-static const char* kRetroArchTitleId="PPSA99169";
 static int launch_status=0;
 static const char* kCores[]={
  "fceumm_libretro.so",
@@ -21,15 +20,6 @@ static const char* kCores[]={
  "genesis_plus_gx_libretro.so",
  "pcsx_rearmed_libretro.so"
 };
-
-static void gg_build_launch_paths(int system,const GGGameList*list,int selected,
-                                  char*core,size_t core_n,char*content,size_t content_n){
- if(!list||list->count<=0||selected<0||selected>=list->count){
-   if(core_n)core[0]=0;if(content_n)content[0]=0;return;
- }
- snprintf(core,core_n,"/app0/cores/%s",kCores[system]);
- snprintf(content,content_n,"%s",list->games[selected].filename);
-}
 
 int main(){
  if(!gg_platform_display_open(1920,1080))for(;;)usleep(1000000);
@@ -48,9 +38,7 @@ int main(){
    if((p&GG_PAD_RIGHT)&&games[system].count>0)
      selected_game=(selected_game+1)%games[system].count;
    if((p&GG_PAD_CROSS)&&games[system].count>0){
-     char core[512],content[512];
-     gg_build_launch_paths(system,&games[system],selected_game,core,sizeof(core),content,sizeof(content));
-     launch_status=gg_launch_retroarch(kRetroArchTitleId,core,content);
+     launch_status=gg_launch_retroarch_payload(kCores[system],games[system].games[selected_game].filename);
    }
    gg_draw_console_browser(s,system,selected_game,&games[system]);
    if(!gg_platform_display_present())for(;;)usleep(1000000);
