@@ -76,7 +76,8 @@ jobs:
         run: |
           cd foundation
           rm -f runtime/libc.prx
-          make app APP_STATIC_ARCHIVES="" APP_INCLUDE_PATHS="src" APP_DEFINITIONS="" STREAM_ARCHIVES=""
+          bash tools/build-stream-deps.sh --ensure
+          APP_STATIC_ARCHIVES="" APP_INCLUDE_PATHS="src" APP_DEFINITIONS="" bash tools/build.sh Folder
           cp ../native-title/THIRD_PARTY_NOTICES.md dist/PPSA99202/
           cp ../native-title/ARCHITECTURE.md dist/PPSA99202/
           cp ../native-title/*.c ../native-title/*.cpp ../native-title/*.h dist/PPSA99202/
