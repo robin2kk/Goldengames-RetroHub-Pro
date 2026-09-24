@@ -35,6 +35,9 @@ jobs:
           cp ../native-title/websrv_launch.h src/
           cp platform/ps5/ps5_sockets.c src/ps5_sockets.c
           cp platform/ps5/ps5_network_metrics.h src/ps5_network_metrics.h
+          grep -q 'GET /hbldr?' src/websrv_launch.cpp
+          grep -q '/data/homebrew/RetroArch/retroarch.elf' src/websrv_launch.cpp
+          grep -q 'ps5_socket_close' src/websrv_launch.cpp
           cat > sce_sys/param.json <<'JSON'
           {
             "ageLevel":{"default":0},
