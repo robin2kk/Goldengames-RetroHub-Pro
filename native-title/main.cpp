@@ -12,7 +12,8 @@ extern "C" int gg_platform_display_present(void);
 
 static const char* kSystems[]={"nes","snes","n64","genesis","psx"};
 static const int kSystemCount=5;
-static const char* kRetroArchTitleId="PPSA99169";\nstatic int launch_status=0;
+static const char* kRetroArchTitleId="PPSA99169";
+static int launch_status=0;
 static const char* kCores[]={
  "fceumm_libretro.so",
  "snes9x_libretro.so",
