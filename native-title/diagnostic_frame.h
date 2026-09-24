@@ -6,7 +6,8 @@ typedef struct { unsigned width; unsigned height; } GGSurface;
 extern "C" {
 #endif
 void gg_platform_put_pixel(unsigned,unsigned,uint32_t);
-void gg_draw_retrohub_frame(GGSurface s,int selected);\nvoid gg_draw_text(GGSurface s,int x,int y,const char*text,int scale,uint32_t color);
+void gg_draw_retrohub_frame(GGSurface s,int selected);
+void gg_draw_text(GGSurface s,int x,int y,const char*text,int scale,uint32_t color);
 #ifdef __cplusplus
 }
 #endif
