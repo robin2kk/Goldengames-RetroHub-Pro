@@ -93,6 +93,7 @@ jobs:
           cp ../native-title/THIRD_PARTY_NOTICES.md dist/PPSA99202/
           cp ../native-title/ARCHITECTURE.md dist/PPSA99202/
           cp ../native-title/LIBRARY_BRIDGE.md dist/PPSA99202/
+          mkdir -p dist/PPSA99202/library
           mkdir -p dist/PPSA99202/library-examples
           cp ../native-title/library/*.example dist/PPSA99202/library-examples/
           cp ../native-title/*.c ../native-title/*.cpp ../native-title/*.h dist/PPSA99202/

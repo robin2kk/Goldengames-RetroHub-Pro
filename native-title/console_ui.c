@@ -1,5 +1,6 @@
 #include "console_ui.h"
 #include <stdint.h>
+#include <stdio.h>
 static void rect(GGSurface s,int x,int y,int w,int h,uint32_t c){if(x<0){w+=x;x=0;}if(y<0){h+=y;y=0;}if(x+w>(int)s.width)w=s.width-x;if(y+h>(int)s.height)h=s.height-y;if(w<=0||h<=0)return;for(int yy=y;yy<y+h;yy++)for(int xx=x;xx<x+w;xx++)gg_platform_put_pixel(xx,yy,c);}
 static void line(GGSurface s,int x,int y,int w,int h,uint32_t c){rect(s,x,y,w,h,c);}
 static void nes(GGSurface s){rect(s,0,0,s.width,s.height,0xffd8d8d8);rect(s,0,0,s.width,170,0xffeeeeee);rect(s,0,170,s.width,95,0xffb21f2d);rect(s,0,265,s.width,8,0xff4b4b4b);rect(s,0,900,s.width,180,0xff292929);line(s,80,70,380,12,0xffb21f2d);line(s,80,96,250,7,0xff555555);}
@@ -42,7 +43,13 @@ void gg_draw_console_browser(GGSurface s,int system,int selected,const GGGameLis
  if(list&&list->count>0&&selected>=0&&selected<list->count){
   gg_draw_text(s,80,890,list->games[selected].title,3,0xffffffff);
  }else{
-  gg_draw_text(s,80,890,"NO GAMES FOUND - ADD LIBRARY MANIFEST",2,0xffffffff);
+  gg_draw_text(s,80,890,"NO GAMES FOUND",2,0xffffffff);
+ }
+ if(list){
+  char info[90];
+  snprintf(info,sizeof(info),"GAMES %d  ROM FOLDER %s  MANIFEST %s",list->count,
+    list->folder_found?"FOUND":"NOT FOUND",list->manifest_found?"FOUND":"NOT FOUND");
+  gg_draw_text(s,80,950,info,2,0xffffffff);
  }
  gg_draw_text(s,80,1000,"L1 R1 SYSTEM   LEFT RIGHT GAME   X PLAY   O RESCAN",2,0xffffffff);
  if(launch_status<0)gg_draw_text(s,900,1000,"LAUNCH FAILED - CHECK WEBSRV AND RETROARCH",2,0xffff7777);

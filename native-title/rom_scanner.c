@@ -3,8 +3,31 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <dirent.h>
+#ifndef GG_RETROARCH_ROMS
+#define GG_RETROARCH_ROMS "/data/homebrew/RetroArch/roms"
+#endif
 
 static int eq(const char*a,const char*b){while(*a&&*b){if(tolower((unsigned char)*a++)!=tolower((unsigned char)*b++))return 0;}return!*a&&!*b;}
+static int folder_match(const char *id,const char *folder){
+ char normalized[96];unsigned n=0;
+ for(const unsigned char*p=(const unsigned char*)folder;*p;p++){
+  if(isalnum(*p)){if(n+1>=sizeof(normalized))return 0;normalized[n++]=(char)tolower(*p);}
+ }
+ normalized[n]=0;
+ if(eq(id,normalized))return 1;
+ static const struct {const char*id,*folder;} aliases[]={
+  {"psx","ps1"},{"psx","playstation"},{"psx","sonyplaystation"},
+  {"nes","nintendoentertainmentsystem"},{"snes","supernintendo"},
+  {"n64","nintendo64"},{"gb","gameboy"},{"gbc","gameboycolor"},
+  {"gba","gameboyadvance"},{"genesis","megadrive"},{"genesis","segagenesis"},
+  {"segacd","megacd"},{"x32","sega32x"},{"saturn","segasaturn"},
+  {"pce","pcengine"},{"pce","turbografx16"},{"arcade","fbneo"},
+  {"c64","commodore64"},{"atari2600","atari2600"},{"atari7800","atari7800"}
+ };
+ for(unsigned i=0;i<sizeof(aliases)/sizeof(aliases[0]);i++)
+  if(eq(id,aliases[i].id)&&eq(normalized,aliases[i].folder))return 1;
+ return 0;
+}
 static int allowed(const char*id,const char*ext){
  if(eq(id,"nes"))return eq(ext,"nes")||eq(ext,"zip");
  if(eq(id,"snes"))return eq(ext,"sfc")||eq(ext,"smc")||eq(ext,"zip");
@@ -30,6 +53,7 @@ static void title_from(const char*name,char*out){snprintf(out,GG_NAME_MAX,"%s",n
 
 static int scan_dir(const char *path,const char *id,GGGameList*out){
  DIR *dir=opendir(path);if(!dir)return 0;
+ out->folder_found=1;
  struct dirent *entry;
  while(out->count<GG_MAX_GAMES&&(entry=readdir(dir))){
   const char *name=entry->d_name;
@@ -46,6 +70,7 @@ static int scan_dir(const char *path,const char *id,GGGameList*out){
 static int scan_manifest(const char *id,GGGameList*out){
  char manifest[256];snprintf(manifest,sizeof(manifest),"/app0/library/%s.lst",id);
  FILE *fp=fopen(manifest,"r");if(!fp)return 0;
+ out->manifest_found=1;
  char line[GG_NAME_MAX];
  while(out->count<GG_MAX_GAMES&&fgets(line,sizeof(line),fp)){
   size_t n=strlen(line);
@@ -65,10 +90,18 @@ static int scan_manifest(const char *id,GGGameList*out){
 int gg_scan_games(const char*id,GGGameList*out){
  if(!id||!out)return 0;
  out->count=0;
- char path[256];
- /* Read the installed payload RetroArch library directly where accessible. */
- if(snprintf(path,sizeof(path),"/data/homebrew/RetroArch/roms/%s",id)>=(int)sizeof(path))return 0;
- if(scan_dir(path,id,out)>0)return out->count;
+ out->folder_found=0;out->manifest_found=0;
+ char path[512];const char *root=GG_RETROARCH_ROMS;
+ DIR *dirs=opendir(root);
+ if(dirs){
+  struct dirent *entry;
+  while(out->count<GG_MAX_GAMES&&(entry=readdir(dirs))){
+   if(!folder_match(id,entry->d_name))continue;
+   if(snprintf(path,sizeof(path),"%s/%s",root,entry->d_name)>=(int)sizeof(path))continue;
+   scan_dir(path,id,out);
+  }
+  closedir(dirs);
+ }
  /* A manifest supplies paths when the native title cannot enumerate that folder. */
  scan_manifest(id,out);
  return out->count;
