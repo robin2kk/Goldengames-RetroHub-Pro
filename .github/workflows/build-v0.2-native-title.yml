@@ -33,6 +33,8 @@ jobs:
           cp ../native-title/rom_scanner.h src/
           cp ../native-title/websrv_launch.cpp src/
           cp ../native-title/websrv_launch.h src/
+          cp platform/ps5/ps5_sockets.c src/ps5_sockets.c
+          cp platform/ps5/ps5_network_metrics.h src/ps5_network_metrics.h
           cat > sce_sys/param.json <<'JSON'
           {
             "ageLevel":{"default":0},
