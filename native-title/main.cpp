@@ -10,15 +10,17 @@ extern "C" int sceSystemServiceHideSplashScreen(void);
 extern "C" int gg_platform_display_open(unsigned,unsigned);
 extern "C" int gg_platform_display_present(void);
 
-static const char* kSystems[]={"nes","snes","n64","genesis","psx"};
-static const int kSystemCount=5;
+static const char* kSystems[]={"nes","snes","n64","gb","gbc","gba","genesis","segacd","x32","saturn","psx","atari2600","atari7800","lynx","jaguar","pce","arcade","amiga","c64"};
+static const int kSystemCount=19;
 static int launch_status=0;
 static const char* kCores[]={
- "fceumm_libretro.so",
- "snes9x_libretro.so",
- "parallel_n64_libretro.so",
- "genesis_plus_gx_libretro.so",
- "pcsx_rearmed_libretro.so"
+ "fceumm_libretro.so","snes9x_libretro.so","parallel_n64_libretro.so",
+ "gambatte_libretro.so","gambatte_libretro.so","mgba_libretro.so",
+ "genesis_plus_gx_libretro.so","picodrive_libretro.so","picodrive_libretro.so",
+ "yabause_libretro.so","pcsx_rearmed_libretro.so","stella2023_libretro.so",
+ "prosystem_libretro.so","handy_libretro.so","virtualjaguar_libretro.so",
+ "mednafen_pce_fast_libretro.so","fbneo_libretro.so","puae_libretro.so",
+ "vice_x64_libretro.so"
 };
 
 int main(){
