@@ -13,4 +13,6 @@ static int allowed(const char*id,const char*ext){
  return 0;
 }
 static void title_from(const char*name,char*out){snprintf(out,GG_NAME_MAX,"%s",name);char*p=strrchr(out,'.');if(p)*p=0;}
-int gg_scan_games(const char*id,GGGameList*out){if(!out)return 0;out->count=0;char path[256];snprintf(path,sizeof(path),"/data/homebrew/RetroArch/roms/%s",id);DIR*d=opendir(path);if(!d)return 0;struct dirent*e;while((e=readdir(d))&&out->count<GG_MAX_GAMES){if(e->d_name[0]=='.')continue;const char*p=strrchr(e->d_name,'.');if(!p||!allowed(id,p+1))continue;GGGame*g=&out->games[out->count++];snprintf(g->filename,GG_NAME_MAX,"%s",e->d_name);title_from(e->d_name,g->title);}closedir(d);return out->count;}
+int gg_scan_games(const char*id,GGGameList*out){if(!out)return 0;out->count=0;char path[256];const char *roots[]={"/data/homebrew/RetroArch/roms","/data/homebrew/retroarch/roms","/data/homebrew/RetroArch/ROMs"};DIR*d=0;
+ for(unsigned i=0;i<sizeof(roots)/sizeof(roots[0]);i++){snprintf(path,sizeof(path),"%s/%s",roots[i],id);d=opendir(path);if(d)break;}
+ if(!d)return 0;struct dirent*e;while((e=readdir(d))&&out->count<GG_MAX_GAMES){if(e->d_name[0]=='.')continue;const char*p=strrchr(e->d_name,'.');if(!p||!allowed(id,p+1))continue;GGGame*g=&out->games[out->count++];snprintf(g->filename,GG_NAME_MAX,"%s",e->d_name);title_from(e->d_name,g->title);}closedir(d);return out->count;}
