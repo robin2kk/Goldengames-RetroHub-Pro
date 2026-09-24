@@ -2,15 +2,10 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
 
-struct sockaddr { uint8_t len; uint8_t family; char data[14]; };
-struct sockaddr_in { uint8_t len; uint8_t family; uint16_t port; uint32_t addr; char zero[8]; };
-
-extern "C" int sceNetSocket(const char*,int,int,int);
-extern "C" int sceNetConnect(int,const struct sockaddr*,unsigned);
-extern "C" int sceNetSend(int,const void*,unsigned long,int);
-extern "C" int sceNetRecv(int,void*,unsigned long,int);
-extern "C" int sceNetSocketClose(int);
+extern "C" int ps5_socket_close(int);
 
 static uint16_t be16(uint16_t v){return (uint16_t)((v<<8)|(v>>8));}
 static void enc(char*out,unsigned cap,const char*in){
@@ -21,7 +16,7 @@ static void enc(char*out,unsigned cap,const char*in){
  out[o]=0;
 }
 static int allsend(int fd,const char*p,unsigned long n){
- while(n){int w=sceNetSend(fd,p,n,0);if(w<=0)return -1;p+=w;n-=(unsigned long)w;}return 0;
+ while(n){int w=(int)send(fd,p,n,0);if(w<=0)return -1;p+=w;n-=(unsigned long)w;}return 0;
 }
 extern "C" int gg_launch_retroarch_payload(const char*core_name,const char*content_path){
  if(!core_name||!*core_name||!content_path||!*content_path)return -1;
@@ -33,10 +28,10 @@ extern "C" int gg_launch_retroarch_payload(const char*core_name,const char*conte
  snprintf(env,sizeof(env),"HOME=%s LD_LIBRARY_PATH=%s",root,root);
  enc(pe,sizeof(pe),exe);enc(pa,sizeof(pa),args);enc(pv,sizeof(pv),env);enc(pc,sizeof(pc),root);
  snprintf(req,sizeof(req),"GET /hbldr?pipe=0&daemon=0&path=%s&args=%s&env=%s&cwd=%s HTTP/1.1\r\nHost: 127.0.0.1:8080\r\nConnection: close\r\n\r\n",pe,pa,pv,pc);
- int fd=sceNetSocket("retrohub-websrv",2,1,0);if(fd<0)return -2;
- sockaddr_in a={};a.len=sizeof(a);a.family=2;a.port=be16(8080);a.addr=0x0100007fU;
- if(sceNetConnect(fd,(const sockaddr*)&a,sizeof(a))<0){sceNetSocketClose(fd);return -3;}
- if(allsend(fd,req,strlen(req))<0){sceNetSocketClose(fd);return -4;}
- char r[96]={0};int n=sceNetRecv(fd,r,sizeof(r)-1,0);sceNetSocketClose(fd);
+ int fd=socket(AF_INET,SOCK_STREAM,0);if(fd<0)return -2;
+ sockaddr_in a={};a.sin_family=AF_INET;a.sin_port=be16(8080);a.sin_addr.s_addr=htonl(INADDR_LOOPBACK);
+ if(connect(fd,(const sockaddr*)&a,sizeof(a))<0){ps5_socket_close(fd);return -3;}
+ if(allsend(fd,req,strlen(req))<0){ps5_socket_close(fd);return -4;}
+ char r[96]={0};int n=recv(fd,r,sizeof(r)-1,0);ps5_socket_close(fd);
  if(n<=0)return -5;return strstr(r," 200 ")?0:-6;
 }
