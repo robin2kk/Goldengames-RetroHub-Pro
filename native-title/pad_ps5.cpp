@@ -23,6 +23,7 @@ extern "C" uint32_t gg_pad_pressed(void){
  if(handle<0)return 0;PadSample s{};if(scePadRead(handle,&s,1)<=0)return 0;
  uint32_t b=load_buttons(s),fresh=b&~previous,out=0;previous=b;
  if(fresh&0x000080)out|=GG_PAD_LEFT;if(fresh&0x000020)out|=GG_PAD_RIGHT;
- if(fresh&0x004000)out|=GG_PAD_CROSS;if(fresh&0x002000)out|=GG_PAD_CIRCLE;return out;
+ if(fresh&0x004000)out|=GG_PAD_CROSS;if(fresh&0x002000)out|=GG_PAD_CIRCLE;
+ if(fresh&0x000400)out|=GG_PAD_L1;if(fresh&0x000800)out|=GG_PAD_R1;return out;
 }
 extern "C" void gg_pad_close(void){if(handle>=0)scePadClose(handle);handle=-1;if(owns_user)sceUserServiceTerminate();owns_user=false;}
