@@ -34,7 +34,7 @@ static int scan_dir(const char *path,const char *id,GGGameList*out){
    if(reclen<8+namelen+1||reclen>rem||namelen>=GG_NAME_MAX||rec[8+namelen]!=0){done=1;break;}
    off+=reclen;if(!ino)continue;const char *name=rec+8;if(name[0]=='.')continue;
    const char *p=strrchr(name,'.');if(!p||!allowed(id,p+1))continue;
-   GGGame*g=&out->games[out->count++];snprintf(g->filename,GG_NAME_MAX,"%s",name);title_from(name,g->title);
+   GGGame*g=&out->games[out->count++];snprintf(g->filename,GG_NAME_MAX,"%s/%s",path,name);title_from(name,g->title);
   }
  }
  free(buf);close(fd);return out->count;
