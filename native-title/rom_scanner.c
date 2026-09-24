@@ -31,7 +31,7 @@ static int scan_dir(const char *path,const char *id,GGGameList*out){
    size_t rem=(size_t)n-off;char *rec=buf+off;uint32_t ino=0;uint16_t reclen=0;
    if(rem<8){done=1;break;}memcpy(&ino,rec,4);memcpy(&reclen,rec+4,2);
    size_t namelen=(unsigned char)rec[7];
-   if(reclen<8+namelen+1||reclen>rem||namelen>=GG_NAME_MAX||rec[8+namelen]!=0){done=1;break;}
+   if(reclen<8+namelen+1||reclen>rem||rec[8+namelen]!=0){done=1;break;}
    off+=reclen;if(!ino)continue;const char *name=rec+8;if(name[0]=='.')continue;
    const char *p=strrchr(name,'.');if(!p||!allowed(id,p+1))continue;
    GGGame*g=&out->games[out->count++];snprintf(g->filename,GG_NAME_MAX,"%s/%s",path,name);title_from(name,g->title);
