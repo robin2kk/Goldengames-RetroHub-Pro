@@ -1,6 +1,7 @@
 #include "retroarch_launch.h"
 #include <string.h>
-#include <stdint.h>\n#include <stdio.h>
+#include <stdint.h>
+#include <stdio.h>
 
 extern "C" int sceSystemServiceLaunchApp(const char *title_id,char **argv,void *ctx);
 
