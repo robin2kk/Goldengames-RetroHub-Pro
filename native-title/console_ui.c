@@ -10,9 +10,20 @@ static void psx(GGSurface s){rect(s,0,0,s.width,s.height,0xffbcbcbc);rect(s,0,0,
 static void card(GGSurface s,int x,int y,int w,int h,int active,uint32_t accent){if(active){rect(s,x-10,y-10,w+20,h+20,accent);rect(s,x-4,y-4,w+8,h+8,0xffffffff);}else rect(s,x-4,y-4,w+8,h+8,0xff55585e);rect(s,x,y,w,h,0xff20242c);rect(s,x+18,y+18,w-36,h-36,0xff303640);}
 static uint32_t game_color(const GGGame *g,int n){uint32_t h=2166136261u;const unsigned char*p=(const unsigned char*)g->filename;while(*p){h^=*p++;h*=16777619u;}h^=(uint32_t)n*0x9e3779b9u;return 0xff000000u|0x303030u|(h&0x00cfcfcfu);}
 void gg_draw_console_browser(GGSurface s,int system,int selected,const GGGameList *list){
- static const uint32_t accents[5]={0xffb21f2d,0xff6b4d91,0xffe5b82e,0xffc62828,0xff4ca3d9};
- static const char *systems[5]={"NINTENDO ENTERTAINMENT SYSTEM","SUPER NINTENDO","NINTENDO 64","SEGA GENESIS","PLAYSTATION"};
- switch(system){case 0:nes(s);break;case 1:snes(s);break;case 2:n64(s);break;case 3:genesis(s);break;default:psx(s);break;}
+ static const uint32_t accents[19]={
+ 0xffb21f2d,0xff6b4d91,0xffe5b82e,0xff7b2f8e,0xff159a8c,0xff563b8f,
+ 0xffc62828,0xff2d64a8,0xffd83b32,0xff315f9e,0xff4ca3d9,0xff8b5a2b,
+ 0xffc7c7c7,0xff2d333b,0xffc91d32,0xffd9473f,0xffd12f87,0xffb9b3a7,0xff7b68a6};
+ static const char *systems[19]={
+ "NINTENDO ENTERTAINMENT SYSTEM","SUPER NINTENDO","NINTENDO 64",
+ "GAME BOY","GAME BOY COLOR","GAME BOY ADVANCE","SEGA GENESIS","SEGA CD",
+ "SEGA 32X","SEGA SATURN","PLAYSTATION","ATARI 2600","ATARI 7800",
+ "ATARI LYNX","ATARI JAGUAR","PC ENGINE","ARCADE","AMIGA","COMMODORE 64"};
+ switch(system){
+  case 0:nes(s);break; case 1:snes(s);break; case 2:n64(s);break;
+  case 6:case 7:case 8:case 9:genesis(s);break; case 10:psx(s);break;
+  default:rect(s,0,0,s.width,s.height,0xffe8e8e8);break;
+ }
  gg_draw_text(s,78,72,"GOLDENGAMES RETROHUB PRO",4,0xff20242c);
  gg_draw_text(s,78,128,systems[system],3,0xff20242c);
  int cy=350;
