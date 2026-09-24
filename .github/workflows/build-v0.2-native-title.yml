@@ -31,7 +31,7 @@ jobs:
           cp ../native-title/console_ui.h src/
           cp ../native-title/rom_scanner.c src/
           cp ../native-title/rom_scanner.h src/
-          cat > sce_sys/param.json <<'JSON'
+          cp ../native-title/retroarch_launch.cpp src/\n          cp ../native-title/retroarch_launch.h src/\n          cat > sce_sys/param.json <<'JSON'
           {
             "ageLevel":{"default":0},
             "applicationCategoryType":0,
