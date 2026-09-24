@@ -12,7 +12,7 @@ extern "C" int gg_platform_display_present(void);
 
 static const char* kSystems[]={"nes","snes","n64","genesis","psx"};
 static const int kSystemCount=5;
-static const char* kRetroArchTitleId="PPSA99169";
+static const char* kRetroArchTitleId="PPSA99169";\nstatic int launch_status=0;
 static const char* kCores[]={
  "fceumm_libretro.so",
  "snes9x_libretro.so",
@@ -49,7 +49,7 @@ int main(){
    if((p&GG_PAD_CROSS)&&games[system].count>0){
      char core[512],content[512];
      gg_build_launch_paths(system,&games[system],selected_game,core,sizeof(core),content,sizeof(content));
-     gg_launch_retroarch(kRetroArchTitleId,core,content);
+     launch_status=gg_launch_retroarch(kRetroArchTitleId,core,content);
    }
    gg_draw_console_browser(s,system,selected_game,&games[system]);
    if(!gg_platform_display_present())for(;;)usleep(1000000);
