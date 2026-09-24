@@ -29,8 +29,10 @@ int main(){
  GGGameList games[kSystemCount];
  for(int i=0;i<kSystemCount;i++)gg_scan_games(kSystems[i],&games[i]);
  int pad_ok=gg_pad_open();
+ int rescan_requested=0;
  for(;;){
    uint32_t p=pad_ok?gg_pad_pressed():0;
+   if(rescan_requested){for(int i=0;i<kSystemCount;i++)gg_scan_games(kSystems[i],&games[i]);selected_game=0;rescan_requested=0;}
    if(p&GG_PAD_L1){system=(system+kSystemCount-1)%kSystemCount;selected_game=0;}
    if(p&GG_PAD_R1){system=(system+1)%kSystemCount;selected_game=0;}
    if((p&GG_PAD_LEFT)&&games[system].count>0)
