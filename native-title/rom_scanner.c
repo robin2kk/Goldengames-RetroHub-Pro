@@ -50,6 +50,9 @@ static int scan_manifest(const char *id,GGGameList*out){
   if(!n||line[0]=='#')continue;
   const char *base=strrchr(line,'/');base=base?base+1:line;
   const char *p=strrchr(base,'.');if(!p||!allowed(id,p+1))continue;
+  /* Manifests store the real path used by the existing payload RetroArch. */
+  if(strncmp(line,"/data/homebrew/RetroArch/",25)!=0&&
+     strncmp(line,"/mnt/usb",8)!=0&&strncmp(line,"/mnt/ext",8)!=0)continue;
   GGGame *g=&out->games[out->count++];snprintf(g->filename,GG_NAME_MAX,"%s",line);title_from(base,g->title);
  }
  fclose(fp);return out->count;
