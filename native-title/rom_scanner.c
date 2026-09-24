@@ -54,7 +54,7 @@ static int scan_manifest(const char *id,GGGameList*out){
  }
  fclose(fp);return out->count;
 }
-\nint gg_scan_games(const char*id,GGGameList*out){
+int gg_scan_games(const char*id,GGGameList*out){
  if(!out)return 0;out->count=0;char path[256];\n if(scan_manifest(id,out)>0)return out->count;
  /* A staged native title sees its own FTP folder as /app0. */
  const char *roots[]={"/app0/content","/app0/roms"};
