@@ -5,7 +5,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-void gg_draw_console_browser(GGSurface s,int system,int selected_game,const GGGameList *list);
+void gg_draw_console_browser(GGSurface s,int system,int selected_game,const GGGameList *list,int launch_status);
 #ifdef __cplusplus
 }
 #endif

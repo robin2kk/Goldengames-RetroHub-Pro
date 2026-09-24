@@ -1,27 +1,25 @@
-# RetroHub native content bridge
+# RetroHub native library bridge
 
-RetroHub is a separate native PS5 title. A title cannot enumerate another title's `/app0`.
-To avoid duplicating ROM files, RetroHub supports small per-system manifests under
-`/app0/library/`. Each non-comment line is the path the RetroArch title will see.
+RetroHub is the native title `PPSA99202`. RetroArch remains the separately
+installed payload at `/data/homebrew/RetroArch/`; this project does not bundle
+RetroArch, cores, ROMs, BIOS, saves, or artwork.
 
-Default RetroArch title target: `PPSA99169`.
+The browser first scans `/data/homebrew/RetroArch/roms/<system>/` directly.
+If the folder cannot be read or contains no recognized games, it reads
+`/app0/library/<system>.lst`. Each manifest entry is the full path to a game
+that the payload can open, for example:
 
-Examples:
-
-`library/nes.lst`
 ```
-/app0/content/nes/Super Mario Bros.nes
-```
-
-`library/snes.lst`
-```
-/app0/content/snes/Super Mario World.sfc
+/data/homebrew/RetroArch/roms/nes/Super Mario Bros.nes
 ```
 
-Controls:
-- L1 / R1: previous / next system
-- D-pad Left / Right: previous / next game
-- Cross: launch selected game in RetroArch
+Generate all 19 manifest files on a PC with
+`tools/Build-RetroHubLibrary.ps1 -RetroArchRoot <local RetroArch folder>`.
+Copy the resulting `.lst` files into `PPSA99202/library/` if direct scanning
+does not find the installed games. The list contains paths only; no game files
+are copied into RetroHub.
 
-The ROM itself exists only in the RetroArch title. RetroHub stores only the manifest entry.
-No ROM, BIOS, commercial artwork, save data, or RetroArch binary is distributed by RetroHub.
+L1/R1 selects the system, Left/Right selects the game, Circle rescans the
+current system, and Cross sends its
+content path and matching core to the websrv payload launcher. A failed launch
+shows a message in the browser. Launch and return must be checked on PS5 5.10.

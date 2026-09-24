@@ -28,15 +28,14 @@ int main(){
  sceSystemServiceHideSplashScreen();
  GGSurface s={1920,1080};
  int system=0,selected_game=0;
- GGGameList games[kSystemCount];
+ static GGGameList games[kSystemCount];
  for(int i=0;i<kSystemCount;i++)gg_scan_games(kSystems[i],&games[i]);
  int pad_ok=gg_pad_open();
- int rescan_requested=0;
  for(;;){
    uint32_t p=pad_ok?gg_pad_pressed():0;
-   if(rescan_requested){for(int i=0;i<kSystemCount;i++)gg_scan_games(kSystems[i],&games[i]);selected_game=0;rescan_requested=0;}
-   if(p&GG_PAD_L1){system=(system+kSystemCount-1)%kSystemCount;selected_game=0;}
-   if(p&GG_PAD_R1){system=(system+1)%kSystemCount;selected_game=0;}
+   if(p&GG_PAD_CIRCLE){gg_scan_games(kSystems[system],&games[system]);selected_game=0;launch_status=0;}
+   if(p&GG_PAD_L1){system=(system+kSystemCount-1)%kSystemCount;selected_game=0;launch_status=0;}
+   if(p&GG_PAD_R1){system=(system+1)%kSystemCount;selected_game=0;launch_status=0;}
    if((p&GG_PAD_LEFT)&&games[system].count>0)
      selected_game=(selected_game+games[system].count-1)%games[system].count;
    if((p&GG_PAD_RIGHT)&&games[system].count>0)
@@ -44,7 +43,7 @@ int main(){
    if((p&GG_PAD_CROSS)&&games[system].count>0){
      launch_status=gg_launch_retroarch_payload(kCores[system],games[system].games[selected_game].filename);
    }
-   gg_draw_console_browser(s,system,selected_game,&games[system]);
+   gg_draw_console_browser(s,system,selected_game,&games[system],launch_status);
    if(!gg_platform_display_present())for(;;)usleep(1000000);
    usleep(16000);
  }

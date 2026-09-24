@@ -41,13 +41,23 @@ The ROM library remains in the existing RetroArch folder. RetroHub does not
 bundle or duplicate ROMs, BIOS files, saves, commercial artwork, or RetroArch
 binaries.
 
-A small generated library manifest provides the visible game list to RetroHub.
-Each manifest line stores the real RetroArch payload path for that game.
+A direct scan of the installed RetroArch ROM folder provides the visible game
+list where the native title can read it. Generated manifests are the fallback;
+each line stores the real RetroArch payload path for that game.
 
-On Cross, RetroHub will hand the selected payload path + arguments to a small
-launch bridge compatible with websrv/hbldr. The previous cross-title
+On Cross, RetroHub hands the selected payload path + arguments to a small
+launch bridge compatible with websrv/hbldr. Spaces and backslashes in paths
+are escaped for websrv's argument parser before URL encoding. The previous cross-title
 `PPSA99169` SystemService launcher is experimental only and is not the final
 v0.2 engine.
+
+## Return behavior still requires a design and hardware test
+
+The upstream websrv `hbldr_launch` terminates the currently running PS5 big app
+before starting the requested payload. Consequently RetroHub cannot assume it
+remains resident after a successful RetroArch launch. Exiting RetroArch may
+return to the PS5 shell. A reliable path back into `PPSA99202` must be built
+and tested on firmware 5.10 before v0.2 is presented as complete.
 
 ## Controls
 

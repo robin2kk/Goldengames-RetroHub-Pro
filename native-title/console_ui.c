@@ -9,7 +9,7 @@ static void genesis(GGSurface s){rect(s,0,0,s.width,s.height,0xff08090b);rect(s,
 static void psx(GGSurface s){rect(s,0,0,s.width,s.height,0xffbcbcbc);rect(s,0,0,s.width,180,0xffd8d8d8);rect(s,0,180,s.width,8,0xff686868);rect(s,0,900,s.width,180,0xff707070);rect(s,1540,75,28,28,0xff4ca3d9);rect(s,1585,75,28,28,0xffd95757);rect(s,1630,75,28,28,0xff61ad69);rect(s,1675,75,28,28,0xffd79ac2);}
 static void card(GGSurface s,int x,int y,int w,int h,int active,uint32_t accent){if(active){rect(s,x-10,y-10,w+20,h+20,accent);rect(s,x-4,y-4,w+8,h+8,0xffffffff);}else rect(s,x-4,y-4,w+8,h+8,0xff55585e);rect(s,x,y,w,h,0xff20242c);rect(s,x+18,y+18,w-36,h-36,0xff303640);}
 static uint32_t game_color(const GGGame *g,int n){uint32_t h=2166136261u;const unsigned char*p=(const unsigned char*)g->filename;while(*p){h^=*p++;h*=16777619u;}h^=(uint32_t)n*0x9e3779b9u;return 0xff000000u|0x303030u|(h&0x00cfcfcfu);}
-void gg_draw_console_browser(GGSurface s,int system,int selected,const GGGameList *list){
+void gg_draw_console_browser(GGSurface s,int system,int selected,const GGGameList *list,int launch_status){
  static const uint32_t accents[19]={
  0xffb21f2d,0xff6b4d91,0xffe5b82e,0xff7b2f8e,0xff159a8c,0xff563b8f,
  0xffc62828,0xff2d64a8,0xffd83b32,0xff315f9e,0xff4ca3d9,0xff8b5a2b,
@@ -44,7 +44,8 @@ void gg_draw_console_browser(GGSurface s,int system,int selected,const GGGameLis
  }else{
   gg_draw_text(s,80,890,"NO GAMES FOUND - ADD LIBRARY MANIFEST",2,0xffffffff);
  }
- gg_draw_text(s,80,1000,"L1 R1 SYSTEM   LEFT RIGHT GAME   X PLAY",2,0xffffffff);
+ gg_draw_text(s,80,1000,"L1 R1 SYSTEM   LEFT RIGHT GAME   X PLAY   O RESCAN",2,0xffffffff);
+ if(launch_status<0)gg_draw_text(s,900,1000,"LAUNCH FAILED - CHECK WEBSRV AND RETROARCH",2,0xffff7777);
  if(list){
   int n=list->count;if(n>40)n=40;
   for(int i=0;i<n;i++)rect(s,80+i*18,820,10,22,accents[system]);
