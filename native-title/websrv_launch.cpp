@@ -7,7 +7,6 @@
 
 extern "C" int ps5_socket_close(int);
 
-static uint16_t be16(uint16_t v){return (uint16_t)((v<<8)|(v>>8));}
 static void enc(char*out,unsigned cap,const char*in){
  static const char h[]="0123456789ABCDEF";unsigned o=0;
  while(*in&&o+4<cap){unsigned char c=(unsigned char)*in++;
@@ -29,7 +28,7 @@ extern "C" int gg_launch_retroarch_payload(const char*core_name,const char*conte
  enc(pe,sizeof(pe),exe);enc(pa,sizeof(pa),args);enc(pv,sizeof(pv),env);enc(pc,sizeof(pc),root);
  snprintf(req,sizeof(req),"GET /hbldr?pipe=0&daemon=0&path=%s&args=%s&env=%s&cwd=%s HTTP/1.1\r\nHost: 127.0.0.1:8080\r\nConnection: close\r\n\r\n",pe,pa,pv,pc);
  int fd=socket(AF_INET,SOCK_STREAM,0);if(fd<0)return -2;
- sockaddr_in a={};a.sin_family=AF_INET;a.sin_port=be16(8080);a.sin_addr.s_addr=htonl(INADDR_LOOPBACK);
+ sockaddr_in a={};a.sin_family=AF_INET;a.sin_port=htons(8080);a.sin_addr.s_addr=htonl(INADDR_LOOPBACK);
  if(connect(fd,(const sockaddr*)&a,sizeof(a))<0){ps5_socket_close(fd);return -3;}
  if(allsend(fd,req,strlen(req))<0){ps5_socket_close(fd);return -4;}
  char r[96]={0};int n=recv(fd,r,sizeof(r)-1,0);ps5_socket_close(fd);
