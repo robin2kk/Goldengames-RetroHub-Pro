@@ -85,7 +85,10 @@ jobs:
           APP_STATIC_ARCHIVES="" APP_INCLUDE_PATHS="src" APP_DEFINITIONS="" bash tools/build.sh Folder
           cp ../native-title/THIRD_PARTY_NOTICES.md dist/PPSA99202/
           cp ../native-title/ARCHITECTURE.md dist/PPSA99202/
-          cp ../native-title/LIBRARY_BRIDGE.md dist/PPSA99202/\n          mkdir -p dist/PPSA99202/library-examples\n          cp ../native-title/library/*.example dist/PPSA99202/library-examples/\n          cp ../native-title/*.c ../native-title/*.cpp ../native-title/*.h dist/PPSA99202/
+          cp ../native-title/LIBRARY_BRIDGE.md dist/PPSA99202/
+          mkdir -p dist/PPSA99202/library-examples
+          cp ../native-title/library/*.example dist/PPSA99202/library-examples/
+          cp ../native-title/*.c ../native-title/*.cpp ../native-title/*.h dist/PPSA99202/
           (cd dist && zip -r ../Goldengames-RetroHub-Pro-v0.2.0-Native-Pad-ProsperoLight.zip PPSA99202)
           sha256sum Goldengames-RetroHub-Pro-v0.2.0-Native-Pad-ProsperoLight.zip
       - uses: actions/upload-artifact@v4
