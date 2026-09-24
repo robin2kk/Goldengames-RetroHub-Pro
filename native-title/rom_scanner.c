@@ -40,8 +40,22 @@ static int scan_dir(const char *path,const char *id,GGGameList*out){
  free(buf);close(fd);return out->count;
 }
 
-int gg_scan_games(const char*id,GGGameList*out){
- if(!out)return 0;out->count=0;char path[256];
+
+static int scan_manifest(const char *id,GGGameList*out){
+ char manifest[256];snprintf(manifest,sizeof(manifest),"/app0/library/%s.lst",id);
+ FILE *fp=fopen(manifest,"r");if(!fp)return 0;
+ char line[GG_NAME_MAX];
+ while(out->count<GG_MAX_GAMES&&fgets(line,sizeof(line),fp)){
+  size_t n=strlen(line);while(n&&(line[n-1]=='\n'||line[n-1]=='\r'))line[--n]=0;
+  if(!n||line[0]=='#')continue;
+  const char *base=strrchr(line,'/');base=base?base+1:line;
+  const char *p=strrchr(base,'.');if(!p||!allowed(id,p+1))continue;
+  GGGame *g=&out->games[out->count++];snprintf(g->filename,GG_NAME_MAX,"%s",line);title_from(base,g->title);
+ }
+ fclose(fp);return out->count;
+}
+\nint gg_scan_games(const char*id,GGGameList*out){
+ if(!out)return 0;out->count=0;char path[256];\n if(scan_manifest(id,out)>0)return out->count;
  /* A staged native title sees its own FTP folder as /app0. */
  const char *roots[]={"/app0/content","/app0/roms"};
  for(unsigned i=0;i<sizeof(roots)/sizeof(roots[0]);i++){
