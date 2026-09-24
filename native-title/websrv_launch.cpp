@@ -4,6 +4,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
 #include <sys/socket.h>
 
 extern "C" int ps5_socket_close(int);
