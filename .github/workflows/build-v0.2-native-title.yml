@@ -33,6 +33,8 @@ jobs:
           cp ../native-title/rom_scanner.h src/
           cp ../native-title/websrv_launch.cpp src/
           cp ../native-title/websrv_launch.h src/
+          cp ../native-title/wallpaper.cpp src/
+          cp ../native-title/wallpaper.h src/
           cp platform/ps5/ps5_sockets.c src/ps5_sockets.c
           cp platform/ps5/ps5_network_metrics.h src/ps5_network_metrics.h
           grep -q 'GET /hbldr?' src/websrv_launch.cpp
@@ -89,10 +91,11 @@ jobs:
           rm -f runtime/libc.prx
           mkdir -p build/stream-deps
           printf "retrohub-native-no-stream\n" > build/stream-deps/options
-          APP_STATIC_ARCHIVES="" APP_INCLUDE_PATHS="src" APP_DEFINITIONS="" bash tools/build.sh Folder
+          APP_STATIC_ARCHIVES="" APP_INCLUDE_PATHS="src include" APP_DEFINITIONS="" bash tools/build.sh Folder
           cp ../native-title/THIRD_PARTY_NOTICES.md dist/PPSA99202/
           cp ../native-title/ARCHITECTURE.md dist/PPSA99202/
           cp ../native-title/LIBRARY_BRIDGE.md dist/PPSA99202/
+          cp -r ../native-title/backgrounds dist/PPSA99202/backgrounds
           mkdir -p dist/PPSA99202/library
           mkdir -p dist/PPSA99202/library-examples
           cp ../native-title/library/*.example dist/PPSA99202/library-examples/

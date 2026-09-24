@@ -17,3 +17,9 @@ Studied as technical references for documented PS5 application behavior. No Miha
 ## Rufidj NativeHBL and ps5-payload-dev
 
 Earlier v0.2 experiments use/reference GPL components in native-ui/. Those experiments are retained as development history and are not the target native-title release architecture.
+
+## Supplied console wallpapers
+
+The `backgrounds/` images were supplied by the project owner for this test build.
+They contain third-party console logos and character illustrations; no claim of
+ownership of those marks or illustrations is made here.
