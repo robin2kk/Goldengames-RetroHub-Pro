@@ -18,6 +18,7 @@ jobs:
         run: |
           git clone --depth 1 https://github.com/blackbearreloaded/ProsperoLight.git foundation
           cd foundation
+          git submodule update --init --recursive
           rm -rf src
           mkdir src
           cp ../native-title/main.cpp src/
@@ -75,7 +76,7 @@ jobs:
         run: |
           cd foundation
           rm -f runtime/libc.prx
-          APP_STATIC_ARCHIVES="" APP_INCLUDE_PATHS="src" APP_DEFINITIONS="" make app
+          make app APP_STATIC_ARCHIVES="" APP_INCLUDE_PATHS="src" APP_DEFINITIONS="" STREAM_ARCHIVES=""
           cp ../native-title/THIRD_PARTY_NOTICES.md dist/PPSA99202/
           cp ../native-title/ARCHITECTURE.md dist/PPSA99202/
           cp ../native-title/*.c ../native-title/*.cpp ../native-title/*.h dist/PPSA99202/
