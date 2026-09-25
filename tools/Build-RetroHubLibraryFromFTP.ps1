@@ -28,7 +28,9 @@ $aliases=@{
 }
 function FtpRequest([string]$path,[string]$method) {
  $segments=$path.TrimStart('/').Split('/') | ForEach-Object {[Uri]::EscapeDataString($_)}
- $request=[Net.FtpWebRequest][Net.WebRequest]::Create("$base/$($segments -join '/')")
+ # .NET treats ftp://host/path as relative to the login directory.
+ # %2f makes these PS5 paths absolute, like FileZilla's /data/homebrew/.
+ $request=[Net.FtpWebRequest][Net.WebRequest]::Create("$base/%2f$($segments -join '/')")
  $request.Method=$method
  $request.Credentials=[Net.NetworkCredential]::new($UserName,$Password)
  $request.UsePassive=$true
@@ -36,13 +38,30 @@ function FtpRequest([string]$path,[string]$method) {
  $request.KeepAlive=$false
  return $request
 }
-function ListNames([string]$path) {
- $response=(FtpRequest $path ([Net.WebRequestMethods+Ftp]::ListDirectory)).GetResponse()
+function ReadListing([string]$path,[string]$method) {
+ $response=(FtpRequest $path $method).GetResponse()
  try {
   $reader=New-Object IO.StreamReader($response.GetResponseStream(),[Text.Encoding]::UTF8)
-  try { $raw=$reader.ReadToEnd() } finally { $reader.Dispose() }
-  return @($raw -split "`r?`n" | Where-Object {$_ -and $_ -ne '.' -and $_ -ne '..'} | ForEach-Object {($_ -replace '\\','/').Split('/')[-1]})
+  try { return $reader.ReadToEnd() } finally { $reader.Dispose() }
  } finally { $response.Dispose() }
+}
+function ListNames([string]$path) {
+ $details=$false
+ try { $raw=ReadListing $path ([Net.WebRequestMethods+Ftp]::ListDirectory) }
+ catch {
+  $raw=ReadListing $path ([Net.WebRequestMethods+Ftp]::ListDirectoryDetails)
+  $details=$true
+ }
+ $names=New-Object 'System.Collections.Generic.List[string]'
+ foreach($row in ($raw -split "`r?`n")){
+  if(!$row){continue}
+  if($details){
+   if($row -notmatch '^[d\-l]\S*\s+\d+\s+\S+\s+\S+\s+\d+\s+\S+\s+\d+\s+\S+\s+(.+)$'){continue}
+   $name=$Matches[1]
+  }else{$name=($row -replace '\\','/').Split('/')[-1]}
+  if($name -and $name -ne '.' -and $name -ne '..'){$names.Add($name)}
+ }
+ return $names.ToArray()
 }
 function UploadBytes([string]$path,[byte[]]$bytes) {
  $request=FtpRequest $path ([Net.WebRequestMethods+Ftp]::UploadFile)
