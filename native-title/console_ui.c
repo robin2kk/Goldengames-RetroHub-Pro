@@ -24,17 +24,25 @@ void gg_draw_console_browser(GGSurface s,int system,int selected,const GGGameLis
  "SEGA 32X","SEGA SATURN","PLAYSTATION","ATARI 2600","ATARI 7800",
  "ATARI LYNX","ATARI JAGUAR","PC ENGINE","ARCADE","AMIGA","COMMODORE 64"};
  if(gg_draw_wallpaper(s,system)){
-  /* The supplied wallpaper reserves the left column for the selected game. */
+  /* Opaque native panel hides the baked Libretro logo and two blank frames. */
+  rect(s,0,0,670,940,0xff10151e);
+  rect(s,0,0,670,11,accents[system]);
+  gg_draw_text(s,42,45,"GOLDENGAMES",3,0xffb9c7d9);
+  gg_draw_text(s,42,91,"RETROHUB",6,0xffffffff);
+  rect(s,42,157,554,4,accents[system]);
+  gg_draw_text(s,42,182,systems[system],2,0xffcad4e1);
   if(list&&list->count>0&&selected>=0&&selected<list->count){
    const GGGame *game=&list->games[selected];
-   rect(s,72,380,328,382,0xffeeeeee);rect(s,78,386,316,370,game_color(game,selected));
-   char title[39],counter[48];upper_title(game->title,title,sizeof(title));
-   rect(s,22,804,465,96,0xff111111);
-   gg_draw_text(s,38,820,title,2,0xffffffff);
+   rect(s,80,257,510,530,0xff273447);
+   rect(s,86,263,498,518,0xff19222e);
+   if(!gg_draw_boxart(s,system,game->title,93,270,484,504))
+    gg_draw_text(s,225,500,"NO COVER",3,0xffaab7c8);
+   char title[38],counter[48];upper_title(game->title,title,sizeof(title));
+   gg_draw_text(s,42,810,title,2,0xffffffff);
    snprintf(counter,sizeof(counter),"GAME %d OF %d",selected+1,list->count);
-   gg_draw_text(s,38,862,counter,2,0xffcccccc);
+   gg_draw_text(s,42,857,counter,2,0xffcccccc);
   }else{
-   gg_draw_text(s,36,600,"NO GAMES FOUND",3,0xffffffff);
+   gg_draw_text(s,80,500,"NO GAMES FOUND",3,0xffffffff);
   }
   rect(s,0,940,s.width,140,0xff141414);
   if(list){char info[120];
@@ -59,7 +67,8 @@ void gg_draw_console_browser(GGSurface s,int system,int selected,const GGGameLis
   int w=d==0?330:220,h=d==0?430:300,x=960+d*310-w/2,y=cy+(d==0?0:65);
   if(list&&idx>=0&&idx<list->count){
    card(s,x,y,w,h,d==0,accents[system]);
-   rect(s,x+28,y+28,w-56,h-56,game_color(&list->games[idx],idx));
+   if(d!=0||!gg_draw_boxart(s,system,list->games[idx].title,x+28,y+28,w-56,h-56))
+    rect(s,x+28,y+28,w-56,h-56,game_color(&list->games[idx],idx));
   }else{
    card(s,x,y,w,h,0,accents[system]);
    rect(s,x,y,w,h,0xff111318);

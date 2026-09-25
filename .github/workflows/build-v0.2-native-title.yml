@@ -101,7 +101,7 @@ jobs:
           PS5_PAYLOAD_SDK=/opt/ps5-payload-sdk make -C ../native-title/return-watchdog
           cp ../native-title/return-watchdog/return-watchdog.elf dist/PPSA99202/
           cp -r ../native-title/backgrounds dist/PPSA99202/backgrounds
-          mkdir -p dist/PPSA99202/library
+          mkdir -p dist/PPSA99202/library dist/PPSA99202/boxarts
           mkdir -p dist/PPSA99202/library-examples
           cp ../native-title/library/*.example dist/PPSA99202/library-examples/
           cp ../native-title/*.c ../native-title/*.cpp ../native-title/*.h dist/PPSA99202/
