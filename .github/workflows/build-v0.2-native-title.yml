@@ -96,6 +96,10 @@ jobs:
           cp ../native-title/ARCHITECTURE.md dist/PPSA99202/
           cp ../native-title/LIBRARY_BRIDGE.md dist/PPSA99202/
           cp ../native-title/retrohub-session.cfg dist/PPSA99202/
+          curl -fL --retry 3 https://github.com/ps5-payload-dev/sdk/releases/latest/download/ps5-payload-sdk.zip -o /tmp/retrohub-sdk.zip
+          sudo unzip -q /tmp/retrohub-sdk.zip -d /opt
+          PS5_PAYLOAD_SDK=/opt/ps5-payload-sdk make -C ../native-title/return-watchdog
+          cp ../native-title/return-watchdog/return-watchdog.elf dist/PPSA99202/
           cp -r ../native-title/backgrounds dist/PPSA99202/backgrounds
           mkdir -p dist/PPSA99202/library
           mkdir -p dist/PPSA99202/library-examples

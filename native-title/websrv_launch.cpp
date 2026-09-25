@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 #include <sys/time.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -36,6 +37,15 @@ static int escaped_arg(char*out,unsigned cap,const char*in){
 static int allsend(int fd,const char*p,unsigned long n){
  while(n){int w=(int)send(fd,p,n,0);if(w<=0)return -1;p+=w;n-=(unsigned long)w;}return 0;
 }
+static int web_request(const char*req){
+ int fd=socket(AF_INET,SOCK_STREAM,0);if(fd<0)return -2;
+ timeval timeout={3,0};setsockopt(fd,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));setsockopt(fd,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));
+ sockaddr_in a={};a.sin_family=AF_INET;a.sin_port=htons(8080);a.sin_addr.s_addr=htonl(INADDR_LOOPBACK);
+ if(connect(fd,(const sockaddr*)&a,sizeof(a))<0){ps5_socket_close(fd);return -3;}
+ if(allsend(fd,req,strlen(req))<0){ps5_socket_close(fd);return -4;}
+ char r[96]={0};int n=recv(fd,r,sizeof(r)-1,0);ps5_socket_close(fd);
+ if(n<=0)return -5;return strstr(r," 200 ")?0:-6;
+}
 extern "C" int gg_launch_retroarch_payload(const char*core_name,const char*content_path){
  if(!valid_core(core_name)||!content_path||!*content_path||
     (strncmp(content_path,"/data/homebrew/RetroArch/",25)!=0&&
@@ -51,11 +61,9 @@ extern "C" int gg_launch_retroarch_payload(const char*core_name,const char*conte
  snprintf(env,sizeof(env),"HOME=%s LD_LIBRARY_PATH=%s",root,root);
  if(enc(pe,sizeof(pe),exe)<0||enc(pa,sizeof(pa),args)<0||enc(pv,sizeof(pv),env)<0||enc(pc,sizeof(pc),root)<0)return -1;
  if(snprintf(req,sizeof(req),"GET /hbldr?pipe=0&daemon=0&path=%s&args=%s&env=%s&cwd=%s HTTP/1.1\r\nHost: 127.0.0.1:8080\r\nConnection: close\r\n\r\n",pe,pa,pv,pc)>=(int)sizeof(req))return -1;
- int fd=socket(AF_INET,SOCK_STREAM,0);if(fd<0)return -2;
- timeval timeout={3,0};setsockopt(fd,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));setsockopt(fd,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));
- sockaddr_in a={};a.sin_family=AF_INET;a.sin_port=htons(8080);a.sin_addr.s_addr=htonl(INADDR_LOOPBACK);
- if(connect(fd,(const sockaddr*)&a,sizeof(a))<0){ps5_socket_close(fd);return -3;}
- if(allsend(fd,req,strlen(req))<0){ps5_socket_close(fd);return -4;}
- char r[96]={0};int n=recv(fd,r,sizeof(r)-1,0);ps5_socket_close(fd);
- if(n<=0)return -5;return strstr(r," 200 ")?0:-6;
+ const char*watch="GET /hbldr?pipe=0&daemon=1&path=%2Fdata%2Fhomebrew%2FPPSA99202%2Freturn-watchdog.elf&cwd=%2Fdata%2Fhomebrew%2FPPSA99202 HTTP/1.1\r\nHost: 127.0.0.1:8080\r\nConnection: close\r\n\r\n";
+ if(web_request(watch)!=0)return -7;
+ /* Let the daemon record this title's app ID before websrv replaces it. */
+ usleep(400000);
+ return web_request(req);
 }

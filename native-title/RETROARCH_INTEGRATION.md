@@ -57,13 +57,16 @@ are escaped for websrv's argument parser before URL encoding. The previous cross
 `PPSA99169` SystemService launcher is experimental only and is not the final
 v0.2 engine.
 
-## Return behavior still requires a design and hardware test
+## Return behavior under hardware test
 
 The upstream websrv `hbldr_launch` terminates the currently running PS5 big app
-before starting the requested payload. Consequently RetroHub cannot assume it
-remains resident after a successful RetroArch launch. Exiting RetroArch may
-return to the PS5 shell. A reliable path back into `PPSA99202` must be built
-and tested on firmware 5.10 before v0.2 is presented as complete.
+before starting the requested payload. RetroHub therefore starts a short-lived
+return daemon before handing off to RetroArch. The daemon watches the new big
+app and requests `sceSystemServiceLaunchApp("PPSA99202")` when it exits, as long
+as no other big app is running. It times out if RetroArch does not start or
+after four hours, and it does not replace a different foreground application.
+The PS5 title must be registered by the user's title loader. This automatic
+return still needs a firmware 5.10 hardware test before v0.2 is complete.
 
 ## Controls
 
