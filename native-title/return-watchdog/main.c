@@ -55,7 +55,7 @@ static void trace(const char *stage, int value) {
 
 int main(void) {
   trace_file = fopen("/data/homebrew/PPSA99202/return-watchdog.log", "w");
-  trace("watchdog-version", 3);
+  trace("watchdog-version", 4);
   /* Diagnostic only: the native title's app ID is not reliably available to
      a daemon on every start. Process tracking below does not depend on it. */
   const int origin = sceSystemServiceGetAppIdOfRunningBigApp();
@@ -76,8 +76,8 @@ int main(void) {
 
   /* Exit after four hours even if the emulator never terminates. */
   int missing_checks = 0;
-  for (int n = 0; n < 14400; ++n) {
-    usleep(1000000);
+  for (int n = 0; n < 72000; ++n) {
+    usleep(200000);
     pid_t current_pid = retroarch_pid();
     if (n == 0) trace("first-process-check", current_pid);
     if (current_pid < 0) { trace("process-query-error", current_pid); continue; }
@@ -85,9 +85,12 @@ int main(void) {
     if (current_pid > 0) { trace("stop-new-retroarch-process", current_pid); return 0; }
     if (++missing_checks >= 3) {
       trace("retroarch-process-gone", current_pid);
-      /* Give the shell time to settle. Never interrupt another running app. */
-      sleep(2);
+      /* Wait briefly for the emulator's big-app slot to clear. */
       int current = sceSystemServiceGetAppIdOfRunningBigApp();
+      for (int settle = 0; current > 0 && settle < 15; ++settle) {
+        usleep(100000);
+        current = sceSystemServiceGetAppIdOfRunningBigApp();
+      }
       trace("app-before-relaunch", current);
       if (current > 0) return 0;
       app_launch_ctx_t ctx = {0};
@@ -99,12 +102,12 @@ int main(void) {
       trace("foreground-user-result", user_result);
       if (user_result != 0) return 3;
       char *args[] = {0};
-      for (int attempt = 0; attempt < 5; ++attempt) {
+      for (int attempt = 0; attempt < 8; ++attempt) {
         if (sceSystemServiceGetAppIdOfRunningBigApp() > 0) return 0;
         int result = sceSystemServiceLaunchApp("PPSA99202", args, &ctx);
         trace("relaunch-result", result);
         if (result >= 0) return 0;
-        sleep(1);
+        usleep(250000);
       }
       return 4;
     }
