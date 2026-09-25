@@ -1,0 +1,14 @@
+Goldengames RetroHub Pro - actualizar biblioteca desde FTP
+
+1. Cierra RetroHub en la PS5. Deja encendido el servidor FTP que usas con FileZilla.
+2. En el PC, descomprime estos tres archivos juntos y haz doble clic en
+   Actualizar-Biblioteca-RetroHub.cmd.
+3. Escribe la IP de la PS5 que aparece en FileZilla. El puerto predeterminado
+   es 1337. Espera a ver "Done" y las cantidades de juegos de cada sistema.
+4. Abre RetroHub. En NES pulsa O para reescanear. Debe mostrar MANIFEST FOUND
+   y GAMES mayor que 0. Navega con Izquierda/Derecha.
+
+La herramienta enumera /data/homebrew/RetroArch/roms por FTP y sube archivos
+.lst a /data/homebrew/PPSA99202/library. Solo contienen rutas de los juegos;
+no copia ni modifica las ROMs. Si aparece un error, toma una foto de la
+ventana de comandos. El lanzamiento de juegos aún requiere una prueba aparte.
