@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <dirent.h>
+#include <errno.h>
 #ifndef GG_RETROARCH_ROMS
 #define GG_RETROARCH_ROMS "/data/homebrew/RetroArch/roms"
 #endif
@@ -52,8 +53,9 @@ static int allowed(const char*id,const char*ext){
 static void title_from(const char*name,char*out){snprintf(out,GG_NAME_MAX,"%s",name);char*p=strrchr(out,'.');if(p)*p=0;}
 
 static int scan_dir(const char *path,const char *id,GGGameList*out){
- DIR *dir=opendir(path);if(!dir)return 0;
+ DIR *dir=opendir(path);if(!dir){out->folder_error=errno;return 0;}
  out->folder_found=1;
+ out->folder_error=0;
  struct dirent *entry;
  while(out->count<GG_MAX_GAMES&&(entry=readdir(dir))){
   const char *name=entry->d_name;
@@ -90,7 +92,7 @@ static int scan_manifest(const char *id,GGGameList*out){
 int gg_scan_games(const char*id,GGGameList*out){
  if(!id||!out)return 0;
  out->count=0;
- out->folder_found=0;out->manifest_found=0;
+ out->folder_found=0;out->manifest_found=0;out->folder_error=0;
  char path[512];const char *root=GG_RETROARCH_ROMS;
  DIR *dirs=opendir(root);
  if(dirs){
@@ -101,6 +103,16 @@ int gg_scan_games(const char*id,GGGameList*out){
    scan_dir(path,id,out);
   }
   closedir(dirs);
+  /* Some FTP layouts expose the exact system directory even when it was not
+     returned by the parent listing. Avoid scanning it twice. */
+  if(!out->folder_found &&
+     snprintf(path,sizeof(path),"%s/%s",root,id)<(int)sizeof(path))
+   scan_dir(path,id,out);
+ }else{
+  out->folder_error=errno;
+  /* Try the known direct path independently of parent directory enumeration. */
+  if(snprintf(path,sizeof(path),"%s/%s",root,id)<(int)sizeof(path))
+   scan_dir(path,id,out);
  }
  /* A manifest supplies paths when the native title cannot enumerate that folder. */
  scan_manifest(id,out);

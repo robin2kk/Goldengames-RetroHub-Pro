@@ -37,9 +37,9 @@ void gg_draw_console_browser(GGSurface s,int system,int selected,const GGGameLis
    gg_draw_text(s,36,600,"NO GAMES FOUND",3,0xffffffff);
   }
   rect(s,0,940,s.width,140,0xff141414);
-  if(list){char info[90];
-   snprintf(info,sizeof(info),"GAMES %d  ROM FOLDER %s  MANIFEST %s",list->count,
-    list->folder_found?"FOUND":"NOT FOUND",list->manifest_found?"FOUND":"NOT FOUND");
+  if(list){char info[120];
+   snprintf(info,sizeof(info),"GAMES %d  ROM FOLDER %s  ERR %d  MANIFEST %s",list->count,
+    list->folder_found?"FOUND":"NOT FOUND",list->folder_error,list->manifest_found?"FOUND":"NOT FOUND");
    gg_draw_text(s,35,964,info,2,0xffffffff);
   }
   gg_draw_text(s,35,1035,"UP DOWN SYSTEM   LEFT RIGHT GAME   X PLAY   O RESCAN",2,0xffffffff);
@@ -72,9 +72,9 @@ void gg_draw_console_browser(GGSurface s,int system,int selected,const GGGameLis
   gg_draw_text(s,80,890,"NO GAMES FOUND",2,0xffffffff);
  }
  if(list){
-  char info[90];
-  snprintf(info,sizeof(info),"GAMES %d  ROM FOLDER %s  MANIFEST %s",list->count,
-    list->folder_found?"FOUND":"NOT FOUND",list->manifest_found?"FOUND":"NOT FOUND");
+  char info[120];
+  snprintf(info,sizeof(info),"GAMES %d  ROM FOLDER %s  ERR %d  MANIFEST %s",list->count,
+    list->folder_found?"FOUND":"NOT FOUND",list->folder_error,list->manifest_found?"FOUND":"NOT FOUND");
   gg_draw_text(s,80,950,info,2,0xffffffff);
  }
  gg_draw_text(s,80,1000,"UP DOWN SYSTEM   LEFT RIGHT GAME   X PLAY   O RESCAN",2,0xffffffff);
