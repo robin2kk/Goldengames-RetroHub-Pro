@@ -95,6 +95,7 @@ jobs:
           cp ../native-title/THIRD_PARTY_NOTICES.md dist/PPSA99202/
           cp ../native-title/ARCHITECTURE.md dist/PPSA99202/
           cp ../native-title/LIBRARY_BRIDGE.md dist/PPSA99202/
+          cp ../native-title/retrohub-session.cfg dist/PPSA99202/
           cp -r ../native-title/backgrounds dist/PPSA99202/backgrounds
           mkdir -p dist/PPSA99202/library
           mkdir -p dist/PPSA99202/library-examples

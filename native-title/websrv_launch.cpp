@@ -45,7 +45,9 @@ extern "C" int gg_launch_retroarch_payload(const char*core_name,const char*conte
  snprintf(exe,sizeof(exe),"%s/retroarch.elf",root);
  if(snprintf(core,sizeof(core),"%s/.config/retroarch/cores/%s",root,core_name)>=(int)sizeof(core)||
     escaped_arg(game,sizeof(game),content_path)<0)return -1;
- if(snprintf(args,sizeof(args),"-f -c %s/retroarch.cfg -L %s %s",root,core,game)>=(int)sizeof(args))return -1;
+ // A ROM launched from our CLI must be able to close back to RetroArch's menu.
+ // Keep this session override separate from the user's RetroArch configuration.
+ if(snprintf(args,sizeof(args),"-f -c %s/retroarch.cfg --appendconfig /data/homebrew/PPSA99202/retrohub-session.cfg -L %s %s",root,core,game)>=(int)sizeof(args))return -1;
  snprintf(env,sizeof(env),"HOME=%s LD_LIBRARY_PATH=%s",root,root);
  if(enc(pe,sizeof(pe),exe)<0||enc(pa,sizeof(pa),args)<0||enc(pv,sizeof(pv),env)<0||enc(pc,sizeof(pc),root)<0)return -1;
  if(snprintf(req,sizeof(req),"GET /hbldr?pipe=0&daemon=0&path=%s&args=%s&env=%s&cwd=%s HTTP/1.1\r\nHost: 127.0.0.1:8080\r\nConnection: close\r\n\r\n",pe,pa,pv,pc)>=(int)sizeof(req))return -1;

@@ -18,6 +18,12 @@ The existing RetroArch package is launched by websrv/hbldr with:
 - arguments normally include:
   `-f -c /data/homebrew/RetroArch/retroarch.cfg`
 
+When launching content from RetroHub, an additional session configuration at
+`/data/homebrew/PPSA99202/retrohub-session.cfg` disables RetroArch's
+`quit_on_close_content` setting. The existing RetroArch configuration is not
+replaced. Quick Menu > Close Content should therefore return to RetroArch's
+main menu; Quit RetroArch still exits to the PS5 launcher.
+
 websrv's launcher supports arbitrary payload arguments and environment values.
 Therefore a selected game can be passed to RetroArch without converting
 RetroArch into a second PS5 native title.
