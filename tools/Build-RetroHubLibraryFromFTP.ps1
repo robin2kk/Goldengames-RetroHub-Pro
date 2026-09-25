@@ -3,9 +3,10 @@ param(
  [int]$Port=1337,
  [string]$UserName="anonymous",
  [string]$Password="anonymous@",
- [string]$Output=(Join-Path $PSScriptRoot "RetroHub-library")
+ [string]$Output=""
 )
 $ErrorActionPreference="Stop"
+if(!$Output){$Output=Join-Path $PSScriptRoot "RetroHub-library"}
 $base="ftp://${HostAddress}:$Port"
 $romRoot="/data/homebrew/RetroArch/roms"
 $targetRoot="/data/homebrew/PPSA99202/library"
