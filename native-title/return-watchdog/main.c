@@ -1,6 +1,12 @@
 /* Goldengames RetroHub Pro return bridge. SPDX-License-Identifier: GPL-3.0-or-later */
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/proc.h>
+#include <sys/user.h>
+#include <sys/sysctl.h>
 #include <unistd.h>
 
 typedef struct {
@@ -15,7 +21,30 @@ int sceUserServiceInitialize(void *);
 int sceUserServiceGetForegroundUser(uint32_t *);
 int sceSystemServiceGetAppIdOfRunningBigApp(void);
 int sceSystemServiceLaunchApp(const char *, char **, app_launch_ctx_t *);
-int sceKernelGetAppState(int, int *, int *);
+
+/* websrv sets the launched big app's process name to retroarch.elf. App IDs
+   can be reused across the handoff, so track the process rather than app ID. */
+static pid_t retroarch_pid(void) {
+  int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PROC, 0};
+  size_t bytes = 0;
+  if (sysctl(mib, 4, NULL, &bytes, NULL, 0) != 0 || bytes == 0) return -1;
+  char *data = malloc(bytes);
+  if (!data) return -1;
+  if (sysctl(mib, 4, data, &bytes, NULL, 0) != 0) { free(data); return -1; }
+  pid_t found = 0;
+  for (char *ptr = data; ptr < data + bytes;) {
+    struct kinfo_proc *proc = (struct kinfo_proc *)ptr;
+    if (proc->ki_structsize <= 0 ||
+        (size_t)proc->ki_structsize > (size_t)(data + bytes - ptr)) break;
+    if (strcmp(proc->ki_comm, "retroarch.elf") == 0) {
+      found = proc->ki_pid;
+      break;
+    }
+    ptr += proc->ki_structsize;
+  }
+  free(data);
+  return found;
+}
 
 static FILE *trace_file;
 static void trace(const char *stage, int value) {
@@ -26,42 +55,39 @@ static void trace(const char *stage, int value) {
 
 int main(void) {
   trace_file = fopen("/data/homebrew/PPSA99202/return-watchdog.log", "w");
-  trace("watchdog-version", 2);
+  trace("watchdog-version", 3);
   /* The daemon starts while RetroHub is still the foreground big app. */
   const int origin = sceSystemServiceGetAppIdOfRunningBigApp();
   trace("origin-app-id", origin);
-  int retroarch = -1;
+  pid_t retroarch = 0;
   if (origin <= 0) { trace("stop-invalid-origin", origin); return 1; }
 
   /* A failed game launch must never leave a watcher that fires later. */
   for (int n = 0; n < 150; ++n) {
     usleep(200000);
-    int current = sceSystemServiceGetAppIdOfRunningBigApp();
-    if (current > 0 && current != origin) {
+    pid_t current = retroarch_pid();
+    if (current > 0) {
       retroarch = current;
-      trace("retroarch-app-id", retroarch);
+      trace("retroarch-pid", retroarch);
       break;
     }
   }
-  if (retroarch <= 0) { trace("stop-no-retroarch", retroarch); return 2; }
+  if (retroarch <= 0) { trace("stop-no-retroarch-process", retroarch); return 2; }
 
   /* Exit after four hours even if the emulator never terminates. */
-  int no_bigapp_seconds = 0;
+  int missing_checks = 0;
   for (int n = 0; n < 14400; ++n) {
     usleep(1000000);
-    int state = sceKernelGetAppState(retroarch, 0, 0);
-    int current = sceSystemServiceGetAppIdOfRunningBigApp();
-    if (n == 0) { trace("first-app-state", state); trace("first-running-app", current); }
-    if (current > 0 && current != retroarch) {
-      trace("stop-other-app", current);
-      return 0;
-    }
-    no_bigapp_seconds = current <= 0 ? no_bigapp_seconds + 1 : 0;
-    if (state != 0 || no_bigapp_seconds >= 3) {
-      trace("retroarch-exited-state", state);
+    pid_t current_pid = retroarch_pid();
+    if (n == 0) trace("first-process-check", current_pid);
+    if (current_pid < 0) { trace("process-query-error", current_pid); continue; }
+    if (current_pid == retroarch) { missing_checks = 0; continue; }
+    if (current_pid > 0) { trace("stop-new-retroarch-process", current_pid); return 0; }
+    if (++missing_checks >= 3) {
+      trace("retroarch-process-gone", current_pid);
       /* Give the shell time to settle. Never interrupt another running app. */
       sleep(2);
-      current = sceSystemServiceGetAppIdOfRunningBigApp();
+      int current = sceSystemServiceGetAppIdOfRunningBigApp();
       trace("app-before-relaunch", current);
       if (current > 0) return 0;
       app_launch_ctx_t ctx = {0};
