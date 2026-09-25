@@ -9,7 +9,6 @@ $ErrorActionPreference="Stop"
 if(!$Output){$Output=Join-Path $PSScriptRoot "RetroHub-library"}
 $base="ftp://${HostAddress}:$Port"
 $romRoot="/data/homebrew/RetroArch/roms"
-$targetRoot="/data/homebrew/PPSA99202/library"
 $systems=[ordered]@{
  nes=@("nes","zip"); snes=@("sfc","smc","zip"); n64=@("z64","n64","v64");
  gb=@("gb","zip"); gbc=@("gbc","zip"); gba=@("gba","zip");
@@ -63,14 +62,6 @@ function ListNames([string]$path) {
  }
  return $names.ToArray()
 }
-function UploadBytes([string]$path,[byte[]]$bytes) {
- $request=FtpRequest $path ([Net.WebRequestMethods+Ftp]::UploadFile)
- $request.ContentLength=$bytes.Length
- $stream=$request.GetRequestStream()
- try { $stream.Write($bytes,0,$bytes.Length) } finally { $stream.Dispose() }
- $response=$request.GetResponse()
- try { Write-Host "Uploaded $path" } finally { $response.Dispose() }
-}
 $folders=@(ListNames $romRoot)
 if($folders.Count -eq 0){throw "FTP could not list any folders under $romRoot"}
 New-Item -ItemType Directory -Force -Path $Output | Out-Null
@@ -90,7 +81,8 @@ foreach($system in $systems.Keys){
  $path=Join-Path $Output "$system.lst"
  $bytes=(New-Object Text.UTF8Encoding($false)).GetBytes(($lines | Sort-Object -Unique) -join "`n")
  [IO.File]::WriteAllBytes($path,$bytes)
- UploadBytes "$targetRoot/$system.lst" $bytes
  Write-Host "$system : $($lines.Count) entries"
 }
-Write-Host "Done. Close and reopen RetroHub, or press Circle on each system to rescan."
+Write-Host "Done. In FileZilla, copy the .lst files from $Output"
+Write-Host "to /data/homebrew/PPSA99202/library/ (create library if missing)."
+Write-Host "Then close and reopen RetroHub, or press Circle on each system to rescan."
