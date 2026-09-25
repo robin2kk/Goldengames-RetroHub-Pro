@@ -56,11 +56,11 @@ static void trace(const char *stage, int value) {
 int main(void) {
   trace_file = fopen("/data/homebrew/PPSA99202/return-watchdog.log", "w");
   trace("watchdog-version", 3);
-  /* The daemon starts while RetroHub is still the foreground big app. */
+  /* Diagnostic only: the native title's app ID is not reliably available to
+     a daemon on every start. Process tracking below does not depend on it. */
   const int origin = sceSystemServiceGetAppIdOfRunningBigApp();
   trace("origin-app-id", origin);
   pid_t retroarch = 0;
-  if (origin <= 0) { trace("stop-invalid-origin", origin); return 1; }
 
   /* A failed game launch must never leave a watcher that fires later. */
   for (int n = 0; n < 150; ++n) {
