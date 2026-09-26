@@ -121,7 +121,7 @@ extern "C" int gg_draw_wallpaper(GGSurface surface,int system){
  /* Crop away the old embedded logo and black frames. The console illustration
     becomes an atmospheric backdrop, darkened so artwork stays legible. */
  for(unsigned y=0;y<H;y++)for(unsigned x=0;x<W;x++){
-  unsigned shade=18+(x>W/2?6:0)+(y<H/2?3:0);
+  unsigned shade=31+(x>W/2?11:0)+(y<H/2?4:0);
   unsigned r=8,g=13,b=25;
   if(pixels){
    unsigned sx=450+(x*750/W),sy=y*IMAGE_H/H;

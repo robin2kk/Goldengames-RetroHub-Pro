@@ -13,6 +13,13 @@ static void rect(GGSurface s,int x,int y,int w,int h,uint32_t c){
  if(w<=0||h<=0)return;
  for(int yy=y;yy<y+h;yy++)for(int xx=x;xx<x+w;xx++)gg_platform_put_pixel(xx,yy,c);
 }
+static uint32_t mix(uint32_t a,uint32_t b,unsigned weight){
+ unsigned inverse=100-weight;
+ unsigned r=(((a>>16)&255)*weight+((b>>16)&255)*inverse)/100;
+ unsigned g=(((a>>8)&255)*weight+((b>>8)&255)*inverse)/100;
+ unsigned blue=((a&255)*weight+(b&255)*inverse)/100;
+ return 0xff000000u|(r<<16)|(g<<8)|blue;
+}
 static void label(GGSurface s,int x,int y,const char*source,int max,int scale,uint32_t color){
  char text[96];int n=0;
  while(source&&source[n]&&n<max&&n<(int)sizeof(text)-1){
@@ -48,7 +55,7 @@ static void card(GGSurface s,int system,int index,const GGGameList*list,int x,in
  uint32_t edge=focus?0xfff7f8fa:0xff43516a;
  bevel(s,x,y,w,h,edge);
  if(focus){rect(s,x-3,y-3,w+6,5,accent);rect(s,x-3,y+h-2,w+6,5,accent);}
- if(!gg_draw_boxart_tinted(s,system,game->title,x+8,y+8,w-16,h-16,focus?100:67))
+ if(!gg_draw_boxart_tinted(s,system,game->title,x+8,y+8,w-16,h-16,focus?100:84))
   sleeve(s,x+8,y+8,w-16,h-16,system_name,game->title,accent);
  /* A narrow glass highlight reads like a physical case without hiding art. */
  rect(s,x+4,y+4,4,h-8,0xff627184);
@@ -74,7 +81,7 @@ void gg_draw_console_browser(GGSurface s,int system,int selected,const GGGameLis
  rect(s,0,0,s.width,6,theme);
  rect(s,0,0,8,s.height,theme);
  /* Header and navigation live on a clean, 1080p canvas above the artwork. */
- rect(s,0,6,s.width,153,0xff0c1423);
+ rect(s,0,6,s.width,153,mix(theme,0xff0c1423,47));
  rect(s,82,54,5,65,theme);
  gg_draw_text(s,108,48,"GOLDENGAMES",3,0xff92a5c0);
  gg_draw_text(s,108,88,"RETROHUB",6,0xfff2f6fc);
@@ -83,7 +90,7 @@ void gg_draw_console_browser(GGSurface s,int system,int selected,const GGGameLis
  rect(s,82,153,1750,2,0xff3b4b62);
  rect(s,82,153,240,4,theme);
  /* Low-profile floor under the physical box art. */
- rect(s,0,854,s.width,226,0xff0b121e);
+ rect(s,0,854,s.width,226,mix(theme,0xff0b121e,52));
  rect(s,82,856,1750,2,0xff35475d);
  rect(s,82,989,1750,2,0xff344158);
  if(list&&list->count>0&&selected>=0&&selected<list->count){
@@ -104,6 +111,7 @@ void gg_draw_console_browser(GGSurface s,int system,int selected,const GGGameLis
  gg_draw_text(s,930,1023,"L1 R1 SYSTEM   LEFT RIGHT GAME   X PLAY   O RESCAN",2,0xffb9c7da);
  if(launch_status<0){
   rect(s,1420,161,438,44,0xff65202b);
-  gg_draw_text(s,1440,177,"LAUNCH FAILED",2,0xffffffff);
+  char failure[50];snprintf(failure,sizeof(failure),"LAUNCH FAILED CODE %d",launch_status);
+  gg_draw_text(s,1440,177,failure,2,0xffffffff);
  }
 }

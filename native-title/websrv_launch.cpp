@@ -62,8 +62,9 @@ extern "C" int gg_launch_retroarch_payload(const char*core_name,const char*conte
  if(enc(pe,sizeof(pe),exe)<0||enc(pa,sizeof(pa),args)<0||enc(pv,sizeof(pv),env)<0||enc(pc,sizeof(pc),root)<0)return -1;
  if(snprintf(req,sizeof(req),"GET /hbldr?pipe=0&daemon=0&path=%s&args=%s&env=%s&cwd=%s HTTP/1.1\r\nHost: 127.0.0.1:8080\r\nConnection: close\r\n\r\n",pe,pa,pv,pc)>=(int)sizeof(req))return -1;
  const char*watch="GET /hbldr?pipe=0&daemon=1&path=%2Fdata%2Fhomebrew%2FPPSA99202%2Freturn-watchdog.elf&cwd=%2Fdata%2Fhomebrew%2FPPSA99202 HTTP/1.1\r\nHost: 127.0.0.1:8080\r\nConnection: close\r\n\r\n";
- if(web_request(watch)!=0)return -7;
- /* Let the daemon record this title's app ID before websrv replaces it. */
- usleep(400000);
+ int watcher_status=web_request(watch);
+ /* The return daemon is optional for launching content. A missing or rejected
+    watchdog must never turn a valid game into a failed launch. */
+ if(watcher_status==0)usleep(400000);
  return web_request(req);
 }
