@@ -8,6 +8,8 @@ extern "C" {
 int gg_draw_wallpaper(GGSurface surface,int system);
 /* Draws the selected game's PNG cover, returning 0 if no readable match exists. */
 int gg_draw_boxart(GGSurface surface,int system,const char *title,int x,int y,int w,int h);
+int gg_draw_boxart_tinted(GGSurface surface,int system,const char *title,int x,int y,int w,int h,unsigned brightness);
+int gg_draw_boxart_reflection(GGSurface surface,int system,const char *title,int x,int y,int w,int h);
 #ifdef __cplusplus
 }
 #endif
