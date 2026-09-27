@@ -68,13 +68,20 @@ foreach($system in $playlists.Keys){
  $dir=Join-Path $Output $system
  New-Item -ItemType Directory -Force -Path $dir | Out-Null
  $count=0
- foreach($rom in [IO.File]::ReadAllLines($manifest)){
-  if(!$rom -or $rom.StartsWith('#')){continue}
-  $title=[IO.Path]::GetFileNameWithoutExtension($rom)
+ foreach($entry in [IO.File]::ReadAllLines($manifest)){
+  if(!$entry -or $entry.StartsWith('#')){continue}
+  $parts=$entry.Split(@("`t"),2,[StringSplitOptions]::None)
+  $rom=$parts[0]
+  $romTitle=[IO.Path]::GetFileNameWithoutExtension($rom)
+  $title=if($parts.Count -gt 1 -and $parts[1]){$parts[1]}else{$romTitle}
   if(!$title){continue}
   $safe=($title -replace '[&*/:<>?\\|]','_')
   $short=($safe -replace '\s*\(.*$','')
   $cover=@($files | Where-Object {$_ -ieq "$safe.png"}) | Select-Object -First 1
+  if(!$cover){
+   $romSafe=($romTitle -replace '[&*/:<>?\\|]','_')
+   $cover=@($files | Where-Object {$_ -ieq "$romSafe.png"}) | Select-Object -First 1
+  }
   if(!$cover -and $short){$cover=@($files | Where-Object {$_ -ieq "$short.png"}) | Select-Object -First 1}
   if(!$cover){continue}
   $local=Join-Path $dir "$safe.png"

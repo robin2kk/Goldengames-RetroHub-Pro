@@ -10,21 +10,33 @@ if(!$Output){$Output=Join-Path $PSScriptRoot "RetroHub-library"}
 $base="ftp://${HostAddress}:$Port"
 $romRoot="/data/homebrew/RetroArch/roms"
 $systems=[ordered]@{
- nes=@("nes","zip"); snes=@("sfc","smc","zip"); n64=@("z64","n64","v64");
+ nes=@("nes","zip"); snes=@("sfc","smc","zip"); n64=@("z64","n64","v64","bin","u1","ndd","zip");
  gb=@("gb","zip"); gbc=@("gbc","zip"); gba=@("gba","zip");
  genesis=@("md","gen","bin","zip"); segacd=@("cue","chd"); x32=@("32x","bin");
- saturn=@("cue","chd"); psx=@("cue","chd","pbp");
+ saturn=@("cue","chd","m3u","iso","ccd","mds","bin","zip");
+ psx=@("cue","chd","pbp","m3u","iso","img","ccd","mdf","bin","toc","cbn");
  atari2600=@("a26","bin","zip"); atari7800=@("a78","bin","zip");
  lynx=@("lnx","zip"); jaguar=@("j64","jag","zip"); pce=@("pce","zip");
  arcade=@("zip"); amiga=@("adf","hdf","lha"); c64=@("d64","t64","crt")
 }
 $aliases=@{
- psx=@("ps1","playstation","sonyplaystation"); nes=@("nintendoentertainmentsystem");
- snes=@("supernintendo"); n64=@("nintendo64"); gb=@("gameboy");
+ psx=@("ps1","playstation","playstation1","sonyplaystation","sonyplaystation1"); nes=@("nintendoentertainmentsystem");
+ snes=@("supernintendo"); n64=@("nintendo64","nintendonintendo64","nintendo64roms"); gb=@("gameboy");
  gbc=@("gameboycolor"); gba=@("gameboyadvance"); genesis=@("megadrive","segagenesis");
- segacd=@("megacd"); x32=@("sega32x"); saturn=@("segasaturn");
+ segacd=@("megacd"); x32=@("sega32x"); saturn=@("segasaturn","segasaturnroms");
  pce=@("pcengine","turbografx16"); arcade=@("fbneo"); c64=@("commodore64")
 }
+$playlists=@{
+ nes="Nintendo - Nintendo Entertainment System"; snes="Nintendo - Super Nintendo Entertainment System";
+ n64="Nintendo - Nintendo 64"; gb="Nintendo - Game Boy"; gbc="Nintendo - Game Boy Color";
+ gba="Nintendo - Game Boy Advance"; genesis="Sega - Mega Drive - Genesis";
+ segacd="Sega - Mega-CD - Sega CD"; x32="Sega - 32X"; saturn="Sega - Saturn";
+ psx="Sony - PlayStation"; atari2600="Atari - 2600"; atari7800="Atari - 7800";
+ lynx="Atari - Lynx"; jaguar="Atari - Jaguar";
+ pce="NEC - PC Engine - TurboGrafx 16"; arcade="Arcade";
+ amiga="Commodore - Amiga"; c64="Commodore - 64"
+}
+function Normalize([string]$name){return ($name -replace '[^a-zA-Z0-9]','').ToLowerInvariant()}
 function FtpRequest([string]$path,[string]$method) {
  $segments=$path.TrimStart('/').Split('/') | ForEach-Object {[Uri]::EscapeDataString($_)}
  # .NET treats ftp://host/path as relative to the login directory.
@@ -35,6 +47,7 @@ function FtpRequest([string]$path,[string]$method) {
  $request.UsePassive=$true
  $request.UseBinary=$true
  $request.KeepAlive=$false
+ $request.Timeout=12000
  return $request
 }
 function ReadListing([string]$path,[string]$method) {
@@ -62,27 +75,85 @@ function ListNames([string]$path) {
  }
  return $names.ToArray()
 }
-$folders=@(ListNames $romRoot)
-if($folders.Count -eq 0){throw "FTP could not list any folders under $romRoot"}
+function ReadFile([string]$path) {return ReadListing $path ([Net.WebRequestMethods+Ftp]::DownloadFile)}
+function ValidPath([string]$path) {
+ return $path.StartsWith('/data/homebrew/RetroArch/') -or
+        $path.StartsWith('/mnt/usb') -or $path.StartsWith('/mnt/ext')
+}
+function AddEntry([string]$system,[string]$path,[string]$title,[hashtable]$target) {
+ if(!$path -or !(ValidPath $path) -or $path.Contains("`n") -or $path.Contains("`r") -or $path.Contains("`t")){return}
+ $ext=[IO.Path]::GetExtension($path).TrimStart('.').ToLowerInvariant()
+ if($systems[$system] -notcontains $ext){return}
+ if(!$target.ContainsKey($path)){
+  if(!$title){$title=[IO.Path]::GetFileNameWithoutExtension($path)}
+  $target[$path]=($title -replace "[`r`n`t]",' ').Trim()
+ }
+}
+function WalkFolder([string]$system,[string]$folder,[int]$depth,[hashtable]$target) {
+ try {$names=@(ListNames $folder)}catch{Write-Warning "Cannot list $folder : $_";return}
+ $hasCue=($system -eq 'psx' -or $system -eq 'saturn') -and @($names | Where-Object {$_ -match '(?i)\.cue$'}).Count -gt 0
+ foreach($name in $names){
+  if(!$name -or $name -eq '.' -or $name -eq '..' -or $name.Contains('/') -or
+     $name.Contains("`n") -or $name.Contains("`r")){continue}
+  $full="$folder/$name"
+  $ext=[IO.Path]::GetExtension($name).TrimStart('.').ToLowerInvariant()
+  if($systems[$system] -contains $ext){
+   if(($system -eq 'psx' -or $system -eq 'saturn') -and $ext -eq 'bin' -and $hasCue){continue}
+   AddEntry $system $full '' $target
+  }elseif($depth -gt 0 -and !$ext){
+   WalkFolder $system $full ($depth-1) $target
+  }
+ }
+}
+$lookup=@{}
+$entries=@{}
+foreach($system in $systems.Keys){
+ $entries[$system]=@{}
+ $lookup[(Normalize $system)]=$system
+ $lookup[(Normalize $playlists[$system])]=$system
+ foreach($alias in $aliases[$system]){$lookup[(Normalize $alias)]=$system}
+}
+$playlistCount=0
+foreach($root in @('/data/homebrew/RetroArch/.config/retroarch/playlists','/data/homebrew/RetroArch/playlists')){
+ try {$files=@(ListNames $root)}catch{continue}
+ foreach($file in $files){
+  if(!$file.EndsWith('.lpl',[StringComparison]::OrdinalIgnoreCase)){continue}
+  try {$parsed=(ReadFile "$root/$file" | ConvertFrom-Json)}
+  catch {Write-Warning "Cannot read playlist $file : $_";continue}
+  $playlistSystem=$lookup[(Normalize ([IO.Path]::GetFileNameWithoutExtension($file)))]
+  foreach($item in @($parsed.items)){
+   if(!$item){continue}
+   $system=$playlistSystem
+   if($item.db_name){
+    $candidate=$lookup[(Normalize ([IO.Path]::GetFileNameWithoutExtension([string]$item.db_name)))]
+    if($candidate){$system=$candidate}
+   }
+   if(!$system){continue}
+   $before=$entries[$system].Count
+   AddEntry $system ([string]$item.path) ([string]$item.label) $entries[$system]
+   if($entries[$system].Count -gt $before){$playlistCount++}
+  }
+ }
+}
+Write-Host "RetroArch playlists: $playlistCount matching games"
+try {$folders=@(ListNames $romRoot)}catch {$folders=@();Write-Warning "Cannot list $romRoot : $_"}
+foreach($system in $systems.Keys){
+ foreach($folder in $folders){
+  $normalized=Normalize $folder
+  if($normalized -ne $system -and $aliases[$system] -notcontains $normalized){continue}
+  WalkFolder $system "$romRoot/$folder" 3 $entries[$system]
+ }
+}
 New-Item -ItemType Directory -Force -Path $Output | Out-Null
 foreach($system in $systems.Keys){
  $lines=New-Object 'System.Collections.Generic.List[string]'
- foreach($folder in $folders){
-  $normalized=($folder -replace '[^a-zA-Z0-9]','').ToLowerInvariant()
-  if($normalized -ne $system -and $aliases[$system] -notcontains $normalized){continue}
-  try { $games=@(ListNames "$romRoot/$folder") }
-  catch { Write-Warning "Cannot list $romRoot/$folder : $_"; continue }
-  foreach($game in $games){
-   if($game.Contains('/') -or $game.Contains("`n") -or $game.Contains("`r")){continue}
-   $ext=[IO.Path]::GetExtension($game).TrimStart('.').ToLowerInvariant()
-   if($systems[$system] -contains $ext){$lines.Add("$romRoot/$folder/$game")}
-  }
+ foreach($path in @($entries[$system].Keys | Sort-Object)){
+  $lines.Add("$path`t$($entries[$system][$path])")
  }
- $path=Join-Path $Output "$system.lst"
- $bytes=(New-Object Text.UTF8Encoding($false)).GetBytes(($lines | Sort-Object -Unique) -join "`n")
- [IO.File]::WriteAllBytes($path,$bytes)
- Write-Host "$system : $($lines.Count) entries"
+ $file=Join-Path $Output "$system.lst"
+ $bytes=(New-Object Text.UTF8Encoding($false)).GetBytes(($lines.ToArray()) -join "`n")
+ [IO.File]::WriteAllBytes($file,$bytes)
+ Write-Host "$system : $($lines.Count) games"
 }
-Write-Host "Done. In FileZilla, copy the .lst files from $Output"
-Write-Host "to /data/homebrew/PPSA99202/library/ (create library if missing)."
-Write-Host "Then close and reopen RetroHub, or press Circle on each system to rescan."
+Write-Host "Copy the .lst files from $Output to /data/homebrew/PPSA99202/library/."
+Write-Host 'Restart RetroHub or press Circle on each system to rescan.'
