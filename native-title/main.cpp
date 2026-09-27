@@ -16,7 +16,7 @@ static int launch_status=0;
 static const char* kCores[]={
  "fceumm_libretro.so","snes9x_libretro.so","parallel_n64_libretro.so",
  "gambatte_libretro.so","gambatte_libretro.so","mgba_libretro.so",
- "genesis_plus_gx_libretro.so","picodrive_libretro.so","picodrive_libretro.so",
+ "genesis_plus_gx_libretro.so","genesis_plus_gx_libretro.so","picodrive_libretro.so",
  "yabause_libretro.so","pcsx_rearmed_libretro.so","stella2023_libretro.so",
  "prosystem_libretro.so","handy_libretro.so","virtualjaguar_libretro.so",
  "mednafen_pce_fast_libretro.so","fbneo_libretro.so","puae_libretro.so",
@@ -41,7 +41,8 @@ int main(){
    if((p&GG_PAD_RIGHT)&&games[system].count>0)
      selected_game=(selected_game+1)%games[system].count;
    if((p&GG_PAD_CROSS)&&games[system].count>0){
-     launch_status=gg_launch_retroarch_payload(kCores[system],games[system].games[selected_game].filename);
+     const GGGame *game=&games[system].games[selected_game];
+     launch_status=gg_launch_retroarch_payload(game->core[0]?game->core:kCores[system],game->filename);
    }
    gg_draw_console_browser(s,system,selected_game,&games[system],launch_status);
    if(!gg_platform_display_present())for(;;)usleep(1000000);

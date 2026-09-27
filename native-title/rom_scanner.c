@@ -49,7 +49,7 @@ static int allowed(const char*id,const char*ext){
  if(eq(id,"gba"))return eq(ext,"gba")||eq(ext,"zip");
  if(eq(id,"saturn"))return eq(ext,"cue")||eq(ext,"chd")||eq(ext,"m3u")||
   eq(ext,"iso")||eq(ext,"ccd")||eq(ext,"mds")||eq(ext,"bin")||eq(ext,"zip");
- if(eq(id,"segacd"))return eq(ext,"cue")||eq(ext,"chd");
+ if(eq(id,"segacd"))return eq(ext,"cue")||eq(ext,"chd")||eq(ext,"iso")||eq(ext,"m3u")||eq(ext,"bin");
  if(eq(id,"x32"))return eq(ext,"32x")||eq(ext,"bin");
  if(eq(id,"atari2600"))return eq(ext,"a26")||eq(ext,"bin")||eq(ext,"zip");
  if(eq(id,"atari7800"))return eq(ext,"a78")||eq(ext,"bin")||eq(ext,"zip");
@@ -69,7 +69,7 @@ static int scan_dir(const char *path,const char *id,GGGameList*out,int depth){
  out->folder_error=0;
  struct dirent *entry;
  int has_cue=0;
- if(eq(id,"psx")||eq(id,"saturn")){
+ if(eq(id,"psx")||eq(id,"saturn")||eq(id,"segacd")){
   while((entry=readdir(dir))){const char*p=strrchr(entry->d_name,'.');if(p&&eq(p+1,"cue")){has_cue=1;break;}}
   rewinddir(dir);
  }
@@ -88,6 +88,7 @@ static int scan_dir(const char *path,const char *id,GGGameList*out,int depth){
   if(has_cue&&eq(p+1,"bin"))continue; /* track data belongs to a cue sheet */
   GGGame*g=&out->games[out->count];
   snprintf(g->filename,GG_NAME_MAX,"%s",full);
+  g->core[0]=0;
   title_from(name,g->title);out->count++;
  }
  closedir(dir);return out->count;
@@ -107,6 +108,7 @@ static int scan_manifest(const char *id,GGGameList*out){
   /* An optional RetroArch playlist label follows the path. It supplies the
      precise name used by Named_Boxarts without changing the launch path. */
   char *label=strchr(line,'\t');if(label)*label++=0;
+  char *core=label?strchr(label,'\t'):NULL;if(core)*core++=0;
   const char *base=strrchr(line,'/');base=base?base+1:line;
   const char *p=strrchr(base,'.');if(!p||!allowed(id,p+1))continue;
   /* Manifests store the real path used by the existing payload RetroArch. */
@@ -116,6 +118,15 @@ static int scan_manifest(const char *id,GGGameList*out){
   int duplicate=0;for(int i=0;i<out->count;i++)if(eq(out->games[i].filename,line)){duplicate=1;break;}
   if(duplicate)continue;
   GGGame *g=&out->games[out->count];snprintf(g->filename,GG_NAME_MAX,"%s",line);
+  g->core[0]=0;
+  if(core&&*core){
+   size_t len=strlen(core);
+   if(len<sizeof(g->core)&&len>12&&eq(core+len-12,"_libretro.so")){
+    int safe=1;for(const unsigned char*q=(const unsigned char*)core;*q;q++)
+     if(!(islower(*q)||isdigit(*q)||*q=='_'||*q=='.'||*q=='-')){safe=0;break;}
+    if(safe)snprintf(g->core,sizeof(g->core),"%s",core);
+   }
+  }
   if(label&&*label)snprintf(g->title,GG_NAME_MAX,"%s",label);
   else title_from(base,g->title);
   out->count++;

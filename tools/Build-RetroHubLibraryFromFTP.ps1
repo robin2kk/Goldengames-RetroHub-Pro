@@ -12,7 +12,7 @@ $romRoot="/data/homebrew/RetroArch/roms"
 $systems=[ordered]@{
  nes=@("nes","zip"); snes=@("sfc","smc","zip"); n64=@("z64","n64","v64","bin","u1","ndd","zip");
  gb=@("gb","zip"); gbc=@("gbc","zip"); gba=@("gba","zip");
- genesis=@("md","gen","bin","zip"); segacd=@("cue","chd"); x32=@("32x","bin");
+ genesis=@("md","gen","bin","zip"); segacd=@("cue","chd","iso","m3u","bin"); x32=@("32x","bin");
  saturn=@("cue","chd","m3u","iso","ccd","mds","bin","zip");
  psx=@("cue","chd","pbp","m3u","iso","img","ccd","mdf","bin","toc","cbn");
  atari2600=@("a26","bin","zip"); atari7800=@("a78","bin","zip");
@@ -80,7 +80,7 @@ function ValidPath([string]$path) {
  return $path.StartsWith('/data/homebrew/RetroArch/') -or
         $path.StartsWith('/mnt/usb') -or $path.StartsWith('/mnt/ext')
 }
-function AddEntry([string]$system,[string]$path,[string]$title,[hashtable]$target) {
+function AddEntry([string]$system,[string]$path,[string]$title,[string]$corePath,[hashtable]$target) {
  if(!$path -or !(ValidPath $path) -or $path.Contains("`n") -or $path.Contains("`r") -or $path.Contains("`t")){return}
  $ext=[IO.Path]::GetExtension($path).TrimStart('.').ToLowerInvariant()
  if($systems[$system] -notcontains $ext){return}
@@ -88,18 +88,20 @@ function AddEntry([string]$system,[string]$path,[string]$title,[hashtable]$targe
   if(!$title){$title=[IO.Path]::GetFileNameWithoutExtension($path)}
   $target[$path]=($title -replace "[`r`n`t]",' ').Trim()
  }
+ $coreName=($corePath -replace '\\','/').Split('/')[-1]
+ if($coreName -cmatch '^[a-z0-9_-]+_libretro\.so$'){$script:entryCores[$path]=$coreName}
 }
 function WalkFolder([string]$system,[string]$folder,[int]$depth,[hashtable]$target) {
  try {$names=@(ListNames $folder)}catch{Write-Warning "Cannot list $folder : $_";return}
- $hasCue=($system -eq 'psx' -or $system -eq 'saturn') -and @($names | Where-Object {$_ -match '(?i)\.cue$'}).Count -gt 0
+ $hasCue=($system -eq 'psx' -or $system -eq 'saturn' -or $system -eq 'segacd') -and @($names | Where-Object {$_ -match '(?i)\.cue$'}).Count -gt 0
  foreach($name in $names){
   if(!$name -or $name -eq '.' -or $name -eq '..' -or $name.Contains('/') -or
      $name.Contains("`n") -or $name.Contains("`r")){continue}
   $full="$folder/$name"
   $ext=[IO.Path]::GetExtension($name).TrimStart('.').ToLowerInvariant()
   if($systems[$system] -contains $ext){
-   if(($system -eq 'psx' -or $system -eq 'saturn') -and $ext -eq 'bin' -and $hasCue){continue}
-   AddEntry $system $full '' $target
+   if(($system -eq 'psx' -or $system -eq 'saturn' -or $system -eq 'segacd') -and $ext -eq 'bin' -and $hasCue){continue}
+   AddEntry $system $full '' '' $target
   }elseif($depth -gt 0 -and !$ext){
    WalkFolder $system $full ($depth-1) $target
   }
@@ -107,6 +109,7 @@ function WalkFolder([string]$system,[string]$folder,[int]$depth,[hashtable]$targ
 }
 $lookup=@{}
 $entries=@{}
+$entryCores=@{}
 foreach($system in $systems.Keys){
  $entries[$system]=@{}
  $lookup[(Normalize $system)]=$system
@@ -130,7 +133,7 @@ foreach($root in @('/data/homebrew/RetroArch/.config/retroarch/playlists','/data
    }
    if(!$system){continue}
    $before=$entries[$system].Count
-   AddEntry $system ([string]$item.path) ([string]$item.label) $entries[$system]
+   AddEntry $system ([string]$item.path) ([string]$item.label) ([string]$item.core_path) $entries[$system]
    if($entries[$system].Count -gt $before){$playlistCount++}
   }
  }
@@ -148,7 +151,9 @@ New-Item -ItemType Directory -Force -Path $Output | Out-Null
 foreach($system in $systems.Keys){
  $lines=New-Object 'System.Collections.Generic.List[string]'
  foreach($path in @($entries[$system].Keys | Sort-Object)){
-  $lines.Add("$path`t$($entries[$system][$path])")
+  $line="$path`t$($entries[$system][$path])"
+  if($entryCores.ContainsKey($path)){$line+="`t$($entryCores[$path])"}
+  $lines.Add($line)
  }
  $file=Join-Path $Output "$system.lst"
  $bytes=(New-Object Text.UTF8Encoding($false)).GetBytes(($lines.ToArray()) -join "`n")

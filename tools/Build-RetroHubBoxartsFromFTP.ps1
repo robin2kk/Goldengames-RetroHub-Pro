@@ -70,7 +70,7 @@ foreach($system in $playlists.Keys){
  $count=0
  foreach($entry in [IO.File]::ReadAllLines($manifest)){
   if(!$entry -or $entry.StartsWith('#')){continue}
-  $parts=$entry.Split(@("`t"),2,[StringSplitOptions]::None)
+  $parts=$entry.Split(@("`t"),3,[StringSplitOptions]::None)
   $rom=$parts[0]
   $romTitle=[IO.Path]::GetFileNameWithoutExtension($rom)
   $title=if($parts.Count -gt 1 -and $parts[1]){$parts[1]}else{$romTitle}

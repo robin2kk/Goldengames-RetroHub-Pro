@@ -14,7 +14,9 @@ label after a tab, for example:
 ```
 
 Here `<TAB>` represents one tab character. The path launches the game; the
-label matches RetroArch's Named_Boxarts filenames. On Windows, run
+label matches RetroArch's Named_Boxarts filenames. An optional third tab-separated
+field contains the installed core filename from the playlist, such as
+`genesis_plus_gx_libretro.so`. RetroHub uses this core for that game. On Windows, run
 `tools/Build-RetroHubLibraryFromFTP.ps1 -HostAddress <PS5 IP> -Port 1337`, then
 copy its `.lst` files into `/data/homebrew/PPSA99202/library/`. The helper does
 not copy games. If no playlist exists for a console, it recursively scans the
